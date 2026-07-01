@@ -76,7 +76,7 @@ function AppRoutes() {
       <Route
         path="/admin/auditoria"
         element={
-          <ProtectedRoute requireSuperAdmin>
+          <ProtectedRoute>
             <AuditLogs />
           </ProtectedRoute>
         }

@@ -9,7 +9,6 @@ import { Input, Select } from '../components/ui/input.jsx'
 import { useAuth } from '../contexts/useAuth.js'
 import { formatDate } from '../lib/utils.js'
 import {
-  createAuditLog,
   exportLogsPdf,
   filterLogs,
   watchLogs,
@@ -56,14 +55,8 @@ export default function AuditLogs() {
   const filteredLogs = useMemo(() => filterLogs(logs, filters), [logs, filters])
   const visibleLogs = filteredLogs.slice(0, limit)
 
-  async function handleExport() {
+  function handleExport() {
     exportLogsPdf(filteredLogs, filters, profile)
-    await createAuditLog(profile, {
-      action: 'EXPORT',
-      entity: 'system',
-      description: `Relatorio PDF de auditoria exportado com ${filteredLogs.length} registros.`,
-      after: { filters },
-    }).catch(() => {})
   }
 
   return (

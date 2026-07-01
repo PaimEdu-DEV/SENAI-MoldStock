@@ -6,6 +6,7 @@ import { Button } from '../components/ui/button.jsx'
 import { Card } from '../components/ui/card.jsx'
 import { Input, Select } from '../components/ui/input.jsx'
 import { useAuth } from '../contexts/useAuth.js'
+import { reauthenticateCurrentUser } from '../services/securityService.js'
 import {
   createProfessor,
   deleteProfessor,
@@ -17,7 +18,6 @@ const emptyForm = {
   nome: '',
   email: '',
   password: '',
-  role: 'admin',
 }
 
 export default function AdminUsers() {
@@ -34,7 +34,7 @@ export default function AdminUsers() {
     setSaving(true)
     setError('')
     try {
-      await createProfessor(form, profile)
+      await createProfessor({ ...form, role: 'admin' }, profile)
       setForm(emptyForm)
     } catch (err) {
       setError(err.message)
@@ -46,6 +46,16 @@ export default function AdminUsers() {
   async function handleRoleChange(admin, role) {
     if (admin.uid === user.uid && role !== 'superadmin') {
       setError('Voce nao pode remover seu proprio perfil de Super Admin.')
+      return
+    }
+    const password = window.prompt(
+      `Confirme sua senha para alterar a permissao de ${admin.nome}.`,
+    )
+    if (!password) return
+    try {
+      await reauthenticateCurrentUser(password)
+    } catch (err) {
+      setError(err.message)
       return
     }
     await updateProfessor(admin.uid, { role }, profile, admin)
@@ -82,11 +92,11 @@ export default function AdminUsers() {
             Novo professor
           </h2>
           <p className="mt-2 text-sm text-slate-500">
-            Super Admin pode cadastrar qualquer e-mail e definir permissoes.
+            O novo professor entra como Admin e troca a senha temporaria no primeiro acesso.
           </p>
           <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
             <label className="grid gap-2 text-sm font-semibold text-slate-700">
-              Nome
+              Nome completo
               <Input
                 required
                 value={form.nome}
@@ -111,16 +121,6 @@ export default function AdminUsers() {
                 value={form.password}
                 onChange={(event) => setForm({ ...form, password: event.target.value })}
               />
-            </label>
-            <label className="grid gap-2 text-sm font-semibold text-slate-700">
-              Permissao
-              <Select
-                value={form.role}
-                onChange={(event) => setForm({ ...form, role: event.target.value })}
-              >
-                <option value="admin">Admin</option>
-                <option value="superadmin">Super Admin</option>
-              </Select>
             </label>
             {error && (
               <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">

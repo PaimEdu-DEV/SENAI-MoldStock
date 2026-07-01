@@ -18,23 +18,28 @@ export async function sendPasswordReset(email) {
   )
 }
 
-export async function changeCurrentUserPassword({
-  currentPassword,
-  newPassword,
-  profile,
-}) {
+export async function reauthenticateCurrentUser(password) {
   requireFirebase()
   const user = auth.currentUser
   if (!user?.email) {
     throw new Error('Usuario autenticado nao encontrado.')
   }
 
-  const credential = EmailAuthProvider.credential(user.email, currentPassword)
-  await withTimeout(
+  const credential = EmailAuthProvider.credential(user.email, password)
+  return withTimeout(
     reauthenticateWithCredential(user, credential),
     'Nao foi possivel confirmar sua senha atual.',
     10000,
   )
+}
+
+export async function completeFirstAccessPassword({ newPassword, profile }) {
+  requireFirebase()
+  const user = auth.currentUser
+  if (!user?.email) {
+    throw new Error('Usuario autenticado nao encontrado.')
+  }
+
   await withTimeout(
     updatePassword(user, newPassword),
     'Nao foi possivel alterar a senha.',
@@ -48,6 +53,6 @@ export async function changeCurrentUserPassword({
     action: 'UPDATE',
     entity: 'user',
     entityId: user.uid,
-    description: 'Senha alterada pelo proprio usuario.',
+    description: 'Senha inicial definida no primeiro acesso.',
   })
 }

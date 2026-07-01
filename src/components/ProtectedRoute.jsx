@@ -27,5 +27,9 @@ export default function ProtectedRoute({ children, requireSuperAdmin = false }) 
     return <Navigate to="/alterar-senha" replace state={{ from: location.pathname }} />
   }
 
+  if (!profile?.mustChangePassword && location.pathname === '/alterar-senha') {
+    return <Navigate to="/admin" replace />
+  }
+
   return children
 }

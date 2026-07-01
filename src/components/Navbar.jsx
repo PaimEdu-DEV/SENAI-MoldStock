@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   LayoutDashboard,
-  LockKeyhole,
   LogIn,
   LogOut,
   Moon,
@@ -50,7 +49,7 @@ export default function Navbar() {
 
   async function handleLogout() {
     await logout()
-    navigate('/')
+    navigate('/login')
   }
 
   return (
@@ -96,10 +95,6 @@ export default function Navbar() {
                 <Users className="h-4 w-4" />
                 <span className="hidden xl:inline">Professores</span>
               </NavItem>
-              <NavItem to="/admin/auditoria">
-                <ScrollText className="h-4 w-4" />
-                <span className="hidden xl:inline">Auditoria</span>
-              </NavItem>
               <NavItem to="/admin/backups">
                 <Vault className="h-4 w-4" />
                 <span className="hidden xl:inline">Backups</span>
@@ -107,9 +102,9 @@ export default function Navbar() {
             </>
           )}
           {isAdmin && (
-            <NavItem to="/alterar-senha">
-              <LockKeyhole className="h-4 w-4" />
-              <span className="hidden xl:inline">Senha</span>
+            <NavItem to="/admin/auditoria">
+              <ScrollText className="h-4 w-4" />
+              <span className="hidden xl:inline">Auditoria</span>
             </NavItem>
           )}
           {isAdmin ? (

@@ -8,17 +8,20 @@ import { Card } from '../components/ui/card.jsx'
 import { useAuth } from '../contexts/useAuth.js'
 import { formatDate } from '../lib/utils.js'
 import {
+  canRestoreBackups,
   createBackup,
   downloadBackupJson,
   restoreBackup,
   watchBackups,
 } from '../services/backupService.js'
+import { reauthenticateCurrentUser } from '../services/securityService.js'
 
 export default function Backups() {
   const { profile } = useAuth()
   const [backups, setBackups] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState('')
+  const canRestore = canRestoreBackups(profile)
 
   useEffect(() => watchBackups(setBackups, (err) => setError(err.message)), [])
 
@@ -39,9 +42,12 @@ export default function Backups() {
       'Esta acao pode substituir dados atuais do sistema. Digite RESTAURAR para continuar.',
     )
     if (confirmation !== 'RESTAURAR') return
+    const password = window.prompt('Confirme sua senha de Super Admin para restaurar.')
+    if (!password) return
     setLoading(backup.id)
     setError('')
     try {
+      await reauthenticateCurrentUser(password)
       await restoreBackup(profile, backup)
     } catch (err) {
       setError(err.message)
@@ -121,7 +127,8 @@ export default function Backups() {
                   <Button
                     type="button"
                     onClick={() => handleRestore(backup)}
-                    disabled={Boolean(loading)}
+                    disabled={Boolean(loading) || !canRestore}
+                    title={!canRestore ? 'Somente epaim@dev.com.br pode restaurar por enquanto.' : undefined}
                   >
                     <RotateCcw className="h-4 w-4" />
                     {loading === backup.id ? 'Restaurando...' : 'Restaurar'}

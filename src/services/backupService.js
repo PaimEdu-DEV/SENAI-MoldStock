@@ -12,6 +12,11 @@ import { db, requireFirebase } from './firebase.js'
 import { withTimeout } from './timeout.js'
 
 const COLLECTIONS = ['pecas', 'ocorrencias', 'admins', 'logs']
+const RESTORE_OWNER_EMAIL = 'epaim@dev.com.br'
+
+export function canRestoreBackups(profile) {
+  return profile?.email?.toLowerCase() === RESTORE_OWNER_EMAIL
+}
 
 function refPath(path) {
   requireFirebase()
@@ -116,6 +121,10 @@ export function downloadBackupJson(backup) {
 }
 
 export async function restoreBackup(profile, backup) {
+  if (!canRestoreBackups(profile)) {
+    throw new Error('Por enquanto, apenas epaim@dev.com.br pode restaurar backups.')
+  }
+
   await createBackup(profile, 'pre_restore')
 
   const data = backup.data || {}
