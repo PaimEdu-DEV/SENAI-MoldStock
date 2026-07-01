@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion'
-import { LogIn } from 'lucide-react'
+import { LoaderCircle, LogIn } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import senaiLogo from '../assets/senai.png'
 import { Button } from '../components/ui/button.jsx'
 import { Card } from '../components/ui/card.jsx'
 import { Input } from '../components/ui/input.jsx'
+import { useAuth } from '../contexts/useAuth.js'
 import { createAuditLog } from '../services/auditService.js'
 import { withTimeout } from '../services/timeout.js'
 import { loginAdmin } from '../services/userService.js'
@@ -40,7 +41,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [step, setStep] = useState('')
+  const { adoptSessionProfile } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -48,7 +49,6 @@ export default function Login() {
     event.preventDefault()
     setLoading(true)
     setError('')
-    setStep('Conectando no Firebase...')
     try {
       const profile = await withTimeout(
         loginAdmin(email, password),
@@ -60,12 +60,12 @@ export default function Login() {
         entity: 'system',
         description: 'Professor entrou no sistema.',
       }).catch(() => {})
+      adoptSessionProfile(profile)
       navigate(profile?.mustChangePassword ? '/alterar-senha' : location.state?.from || '/admin')
     } catch (err) {
       setError(getLoginErrorMessage(err))
     } finally {
       setLoading(false)
-      setStep('')
     }
   }
 
@@ -116,13 +116,12 @@ export default function Login() {
                 {error}
               </div>
             )}
-            {loading && step && (
-              <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm font-medium text-senai-blue">
-                {step}
-              </div>
-            )}
             <Button type="submit" variant="red" disabled={loading}>
-              <LogIn className="h-4 w-4" />
+              {loading ? (
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+              ) : (
+                <LogIn className="h-4 w-4" />
+              )}
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>

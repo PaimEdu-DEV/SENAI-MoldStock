@@ -46,6 +46,11 @@ export function AuthProvider({ children }) {
       isFirebaseConfigured,
       isAdmin: Boolean(profile),
       isSuperAdmin: profile?.role === 'superadmin',
+      adoptSessionProfile: (nextProfile) => {
+        setUser(auth?.currentUser || null)
+        setProfile(nextProfile)
+        setLoading(false)
+      },
       logout: async () => {
         if (!auth) return
         if (profile) {
