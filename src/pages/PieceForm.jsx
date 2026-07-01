@@ -84,6 +84,7 @@ export default function PieceForm() {
   const { profile } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState(emptyForm)
+  const [originalPiece, setOriginalPiece] = useState(null)
   const [previousStatus, setPreviousStatus] = useState('OK')
   const [files, setFiles] = useState({ fotoPeca: null, fotoMolde: null })
   const [currentImages, setCurrentImages] = useState({})
@@ -97,6 +98,7 @@ export default function PieceForm() {
     if (!isEditing) return
     getPiece(id).then((piece) => {
       if (!piece) return
+      setOriginalPiece(piece)
       setForm({
         codigo: piece.codigo || '',
         nome: piece.nome || '',
@@ -123,8 +125,8 @@ export default function PieceForm() {
     try {
       if (isEditing) {
         await withTimeout(
-          updatePiece(id, form, files),
-          'Salvar demorou demais. Confira as regras do banco e do Storage.',
+          updatePiece(id, form, files, profile, originalPiece),
+          'Salvar demorou demais. Confira as regras do banco.',
           15000,
         )
         if (form.status !== previousStatus && form.status !== 'OK') {

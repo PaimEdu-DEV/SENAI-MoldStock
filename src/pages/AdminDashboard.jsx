@@ -8,12 +8,18 @@ import PieceTable from '../components/PieceTable.jsx'
 import QRCodeModal from '../components/QRCodeModal.jsx'
 import StatsCard from '../components/StatsCard.jsx'
 import { Button } from '../components/ui/button.jsx'
+import { useAuth } from '../contexts/useAuth.js'
+import { createAuditLog } from '../services/auditService.js'
 import { deletePiece, watchPieces } from '../services/pieceService.js'
 
 const initialFilters = {
   search: '',
   status: 'Todos',
   localizacao: '',
+}
+
+function isMaintenanceStatus(status) {
+  return status === 'Em manutenção' || status === 'Em manutenÃ§Ã£o'
 }
 
 function filterPieces(pieces, filters) {
@@ -29,13 +35,17 @@ function filterPieces(pieces, filters) {
       .join(' ')
       .toLowerCase()
     const matchSearch = !search || haystack.includes(search)
-    const matchStatus = filters.status === 'Todos' || piece.status === filters.status
+    const matchStatus =
+      filters.status === 'Todos' ||
+      piece.status === filters.status ||
+      (filters.status === 'Em manutenção' && isMaintenanceStatus(piece.status))
     const matchLocation = !location || piece.localizacao?.toLowerCase().includes(location)
     return matchSearch && matchStatus && matchLocation
   })
 }
 
 export default function AdminDashboard() {
+  const { profile, isSuperAdmin } = useAuth()
   const [pieces, setPieces] = useState([])
   const [filters, setFilters] = useState(initialFilters)
   const [qrPiece, setQrPiece] = useState(null)
@@ -53,15 +63,36 @@ export default function AdminDashboard() {
     () => ({
       total: pieces.length,
       ok: pieces.filter((piece) => piece.status === 'OK').length,
-      maintenance: pieces.filter((piece) => piece.status === 'Em manutenção').length,
+      maintenance: pieces.filter((piece) => isMaintenanceStatus(piece.status)).length,
       broken: pieces.filter((piece) => piece.status === 'Quebrado').length,
     }),
     [pieces],
   )
 
   async function handleDelete(piece) {
-    const confirmed = window.confirm(`Excluir a peça ${piece.nome}?`)
-    if (confirmed) await deletePiece(piece.id)
+    if (!isSuperAdmin) {
+      await createAuditLog(profile, {
+        action: 'PERMISSION_DENIED',
+        entity: 'piece',
+        entityId: piece.id,
+        description: `Tentativa negada de excluir a peca ${piece.nome}.`,
+      }).catch(() => {})
+      setError('Apenas Super Admin pode excluir pecas.')
+      return
+    }
+
+    const confirmed = window.confirm(`Excluir a peca ${piece.nome}?`)
+    if (confirmed) await deletePiece(piece.id, profile, piece)
+  }
+
+  async function handleQrCode(piece) {
+    setQrPiece(piece)
+    await createAuditLog(profile, {
+      action: 'EXPORT',
+      entity: 'qrcode',
+      entityId: piece.id,
+      description: `QR Code gerado para ${piece.nome}.`,
+    }).catch(() => {})
   }
 
   return (
@@ -69,12 +100,12 @@ export default function AdminDashboard() {
       <PageHeader
         eyebrow="Painel operacional"
         title="Estoque de moldes"
-        description="Gerencie disponibilidade, manutenção, ocorrências e QR Codes com uma visão rápida do estado do laboratório."
+        description="Gerencie disponibilidade, manutencao, ocorrencias e QR Codes com uma visao rapida do estado do laboratorio."
         action={
           <Button asChild size="lg">
             <Link to="/admin/pecas/nova">
               <Plus className="h-5 w-5" />
-              Nova peça
+              Nova peca
             </Link>
           </Button>
         }
@@ -89,16 +120,16 @@ export default function AdminDashboard() {
         />
         <StatsCard
           icon={CheckCircle2}
-          label="Disponíveis"
+          label="Disponiveis"
           value={stats.ok}
-          description="Prontos para utilização."
+          description="Prontos para utilizacao."
           tone="ok"
         />
         <StatsCard
           icon={Factory}
-          label="Em manutenção"
+          label="Em manutencao"
           value={stats.maintenance}
-          description="Aguardando reparo ou inspeção."
+          description="Aguardando reparo ou inspecao."
           tone="maintenance"
         />
         <StatsCard
@@ -120,7 +151,8 @@ export default function AdminDashboard() {
       <PieceTable
         pieces={filteredPieces}
         admin
-        onQrCode={setQrPiece}
+        canDelete={isSuperAdmin}
+        onQrCode={handleQrCode}
         onOccurrence={setOccurrencePiece}
         onStatus={setStatusPiece}
         onDelete={handleDelete}

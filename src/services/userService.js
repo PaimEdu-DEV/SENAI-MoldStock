@@ -13,6 +13,7 @@ import {
   signOut,
 } from 'firebase/auth'
 import { auth, createSecondaryAuth, db, requireFirebase } from './firebase.js'
+import { createAuditLog } from './auditService.js'
 import { withTimeout } from './timeout.js'
 
 function adminRef(uid = '') {
@@ -42,9 +43,14 @@ export async function loginAdmin(email, password) {
     if (userEmail.toLowerCase().endsWith('@docente.senai.br')) {
       const repairedProfile = {
         nome: userEmail.split('@')[0],
+        name: userEmail.split('@')[0],
         email: userEmail.toLowerCase(),
         role: 'admin',
+        active: true,
+        mustChangePassword: false,
         criadoEm: Date.now(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       }
       await set(adminRef(credential.user.uid), repairedProfile)
       return { uid: credential.user.uid, ...repairedProfile }
@@ -52,6 +58,10 @@ export async function loginAdmin(email, password) {
 
     await signOut(auth)
     throw new Error('Este usuario existe no Authentication, mas nao esta cadastrado em admins no Realtime Database.')
+  }
+  if (profile.active === false) {
+    await signOut(auth)
+    throw new Error('Este acesso esta desativado. Procure um Super Admin.')
   }
   return profile
 }
@@ -71,9 +81,14 @@ export async function registerSelfAdmin({ nome, email, password }) {
     await withTimeout(
       set(adminRef(credential.user.uid), {
         nome,
+        name: nome,
         email: email.toLowerCase(),
         role: 'admin',
+        active: true,
+        mustChangePassword: false,
         criadoEm: Date.now(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       }),
       'Usuario criado no Authentication, mas o Realtime Database nao aceitou salvar o professor. Confira as regras do Realtime Database.',
     )
@@ -85,7 +100,7 @@ export async function registerSelfAdmin({ nome, email, password }) {
   return { uid: credential.user.uid, nome, email, role: 'admin' }
 }
 
-export async function createProfessor({ nome, email, password, role }) {
+export async function createProfessor({ nome, email, password, role }, actingProfile) {
   const secondary = createSecondaryAuth()
   try {
     const credential = await withTimeout(
@@ -95,12 +110,25 @@ export async function createProfessor({ nome, email, password, role }) {
     await withTimeout(
       set(adminRef(credential.user.uid), {
         nome,
+        name: nome,
         email: email.toLowerCase(),
         role,
+        active: true,
+        mustChangePassword: true,
+        createdBy: actingProfile?.uid || '',
         criadoEm: Date.now(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       }),
       'Professor criado no Authentication, mas o Realtime Database nao aceitou salvar.',
     )
+    await createAuditLog(actingProfile, {
+      action: 'CREATE',
+      entity: 'user',
+      entityId: credential.user.uid,
+      description: `Professor ${email} criado com role ${role}.`,
+      after: { nome, email, role },
+    })
     await signOut(secondary.auth)
   } finally {
     await secondary.cleanup()
@@ -123,12 +151,30 @@ export function watchAdmins(callback, onError) {
   return () => off(listRef)
 }
 
-export async function updateProfessor(uid, data) {
+export async function updateProfessor(uid, data, actingProfile, before = null) {
   requireFirebase()
-  return update(adminRef(uid), data)
+  await update(adminRef(uid), {
+    ...data,
+    updatedAt: Date.now(),
+  })
+  await createAuditLog(actingProfile, {
+    action: 'UPDATE',
+    entity: 'user',
+    entityId: uid,
+    description: 'Permissoes ou dados de professor atualizados.',
+    before,
+    after: data,
+  })
 }
 
-export async function deleteProfessor(uid) {
+export async function deleteProfessor(uid, actingProfile, before = null) {
   requireFirebase()
-  return remove(adminRef(uid))
+  await remove(adminRef(uid))
+  await createAuditLog(actingProfile, {
+    action: 'DELETE',
+    entity: 'user',
+    entityId: uid,
+    description: 'Professor removido do painel administrativo.',
+    before,
+  })
 }

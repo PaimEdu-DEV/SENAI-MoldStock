@@ -9,6 +9,7 @@ import {
   update,
 } from 'firebase/database'
 import { db, requireFirebase } from './firebase.js'
+import { createAuditLog } from './auditService.js'
 import { withTimeout } from './timeout.js'
 
 const codeSorter = new Intl.Collator('pt-BR', {
@@ -97,11 +98,18 @@ export async function createPiece(data, files, userProfile) {
     criadoEm: now,
     atualizadoEm: now,
   }), 'Nao foi possivel salvar a peca no Realtime Database. Confira as regras de escrita.')
+  await createAuditLog(userProfile, {
+    action: 'CREATE',
+    entity: 'piece',
+    entityId: newPieceRef.key,
+    description: `Peca ${data.nome} criada.`,
+    after: { ...data, codigo: String(data.codigo).trim() },
+  })
 
   return { id: newPieceRef.key, imageError: '' }
 }
 
-export async function updatePiece(id, data, files) {
+export async function updatePiece(id, data, files, userProfile, before = null) {
   requireFirebase()
   const updates = {
     ...data,
@@ -118,21 +126,44 @@ export async function updatePiece(id, data, files) {
   if (fotoPecaUrl) updates.fotoPecaUrl = fotoPecaUrl
   if (fotoMoldeUrl) updates.fotoMoldeUrl = fotoMoldeUrl
 
-  return withTimeout(
+  await withTimeout(
     update(piecesRef(id), updates),
     'Nao foi possivel atualizar a peca no Realtime Database. Confira as regras de escrita.',
   )
-}
-
-export async function updatePieceStatus(id, status) {
-  requireFirebase()
-  return update(piecesRef(id), {
-    status,
-    atualizadoEm: Date.now(),
+  await createAuditLog(userProfile, {
+    action: 'UPDATE',
+    entity: 'piece',
+    entityId: id,
+    description: `Peca ${data.nome} atualizada.`,
+    before,
+    after: updates,
   })
 }
 
-export async function deletePiece(id) {
+export async function updatePieceStatus(id, status, userProfile, before = null) {
   requireFirebase()
-  return remove(piecesRef(id))
+  await update(piecesRef(id), {
+    status,
+    atualizadoEm: Date.now(),
+  })
+  await createAuditLog(userProfile, {
+    action: 'UPDATE',
+    entity: 'piece',
+    entityId: id,
+    description: `Status alterado para ${status}.`,
+    before,
+    after: { status },
+  })
+}
+
+export async function deletePiece(id, userProfile, before = null) {
+  requireFirebase()
+  await remove(piecesRef(id))
+  await createAuditLog(userProfile, {
+    action: 'DELETE',
+    entity: 'piece',
+    entityId: id,
+    description: 'Peca excluida.',
+    before,
+  })
 }

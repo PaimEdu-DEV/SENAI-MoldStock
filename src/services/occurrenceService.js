@@ -6,6 +6,7 @@ import {
   set,
 } from 'firebase/database'
 import { db, requireFirebase } from './firebase.js'
+import { createAuditLog } from './auditService.js'
 
 function occurrencesRef(id = '') {
   requireFirebase()
@@ -35,5 +36,12 @@ export async function createOccurrence(data, userProfile) {
     ...data,
     registradoPor: userProfile?.nome || userProfile?.email || 'Professor',
     criadoEm: Date.now(),
+  })
+  await createAuditLog(userProfile, {
+    action: 'CREATE',
+    entity: 'occurrence',
+    entityId: newOccurrenceRef.key,
+    description: `Ocorrencia registrada: ${data.tipo}.`,
+    after: data,
   })
 }

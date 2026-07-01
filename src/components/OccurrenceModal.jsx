@@ -43,7 +43,7 @@ export default function OccurrenceModal({ piece, mode = 'occurrence', onClose })
     setSaving(true)
     try {
       if (isStatusMode) {
-        await updatePieceStatus(piece.id, form.statusNovo)
+        await updatePieceStatus(piece.id, form.statusNovo, profile, piece)
       }
       await createOccurrence(
         {

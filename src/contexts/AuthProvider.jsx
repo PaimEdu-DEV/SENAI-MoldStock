@@ -1,6 +1,7 @@
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { useEffect, useMemo, useState } from 'react'
 import { auth, isFirebaseConfigured } from '../services/firebase.js'
+import { createAuditLog } from '../services/auditService.js'
 import { getAdminProfile } from '../services/userService.js'
 import { AuthContext } from './authContext.js'
 
@@ -45,7 +46,17 @@ export function AuthProvider({ children }) {
       isFirebaseConfigured,
       isAdmin: Boolean(profile),
       isSuperAdmin: profile?.role === 'superadmin',
-      logout: () => (auth ? signOut(auth) : Promise.resolve()),
+      logout: async () => {
+        if (!auth) return
+        if (profile) {
+          await createAuditLog(profile, {
+            action: 'LOGOUT',
+            entity: 'system',
+            description: 'Professor saiu do sistema.',
+          }).catch(() => {})
+        }
+        await signOut(auth)
+      },
     }),
     [user, profile, loading],
   )

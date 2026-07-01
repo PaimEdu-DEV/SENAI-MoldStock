@@ -2,16 +2,26 @@
   "rules": {
     "pecas": {
       ".read": true,
-      ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false"
     },
     "ocorrencias": {
-      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
-      ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false"
+    },
+    "logs": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).child('role').val() == 'superadmin' && root.child('admins').child(auth.uid).child('active').val() != false",
+      "$logId": {
+        ".write": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false && !data.exists() && newData.exists()"
+      }
+    },
+    "backups": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).child('role').val() == 'superadmin' && root.child('admins').child(auth.uid).child('active').val() != false",
+      ".write": "auth != null && root.child('admins').child(auth.uid).child('role').val() == 'superadmin' && root.child('admins').child(auth.uid).child('active').val() != false"
     },
     "admins": {
-      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false",
       "$uid": {
-        ".write": "auth != null && ((auth.uid == $uid && !data.exists() && newData.child('role').val() == 'admin' && auth.token.email.matches(/.*@docente\\.senai\\.br$/)) || root.child('admins').child(auth.uid).child('role').val() == 'superadmin')"
+        ".write": "auth != null && ((auth.uid == $uid && !data.exists() && newData.child('role').val() == 'admin' && auth.token.email.matches(/.*@docente\\.senai\\.br$/)) || (root.child('admins').child(auth.uid).child('role').val() == 'superadmin' && root.child('admins').child(auth.uid).child('active').val() != false))"
       }
     }
   }

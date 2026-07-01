@@ -62,6 +62,7 @@ export default function PieceTable({
   onOccurrence,
   onStatus,
   onDelete,
+  canDelete = false,
 }) {
   const navigate = useNavigate()
 
@@ -191,13 +192,15 @@ export default function PieceTable({
                         >
                           <Siren className="h-4 w-4" />
                         </ActionButton>
-                        <ActionButton
-                          label="Excluir"
-                          className="text-rose-500 hover:text-rose-700"
-                          onClick={() => onDelete(piece)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </ActionButton>
+                        {canDelete && (
+                          <ActionButton
+                            label="Excluir"
+                            className="text-rose-500 hover:text-rose-700"
+                            onClick={() => onDelete(piece)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </ActionButton>
+                        )}
                       </div>
                     </td>
                   )}

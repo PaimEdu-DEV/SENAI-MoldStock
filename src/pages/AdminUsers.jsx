@@ -21,22 +21,20 @@ const emptyForm = {
 }
 
 export default function AdminUsers() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [admins, setAdmins] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    return watchAdmins(setAdmins, (err) => setError(err.message))
-  }, [])
+  useEffect(() => watchAdmins(setAdmins, (err) => setError(err.message)), [])
 
   async function handleSubmit(event) {
     event.preventDefault()
     setSaving(true)
     setError('')
     try {
-      await createProfessor(form)
+      await createProfessor(form, profile)
       setForm(emptyForm)
     } catch (err) {
       setError(err.message)
@@ -47,27 +45,35 @@ export default function AdminUsers() {
 
   async function handleRoleChange(admin, role) {
     if (admin.uid === user.uid && role !== 'superadmin') {
-      setError('Você não pode remover seu próprio perfil de Super Admin.')
+      setError('Voce nao pode remover seu proprio perfil de Super Admin.')
       return
     }
-    await updateProfessor(admin.uid, { role })
+    await updateProfessor(admin.uid, { role }, profile, admin)
+  }
+
+  async function handleActiveChange(admin) {
+    if (admin.uid === user.uid) {
+      setError('Voce nao pode desativar seu proprio acesso.')
+      return
+    }
+    await updateProfessor(admin.uid, { active: !admin.active }, profile, admin)
   }
 
   async function handleDelete(admin) {
     if (admin.uid === user.uid) {
-      setError('Você não pode excluir seu próprio acesso.')
+      setError('Voce nao pode excluir seu proprio acesso.')
       return
     }
     const confirmed = window.confirm(`Remover ${admin.nome}?`)
-    if (confirmed) await deleteProfessor(admin.uid)
+    if (confirmed) await deleteProfessor(admin.uid, profile, admin)
   }
 
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
         eyebrow="Super Admin"
-        title="Gestão de professores"
-        description="Controle permissões administrativas e acessos docentes com rastreabilidade."
+        title="Gestao de professores"
+        description="Controle permissoes administrativas, senhas temporarias e acessos docentes com rastreabilidade."
       />
 
       <section className="grid gap-6 lg:grid-cols-[420px_1fr]">
@@ -76,7 +82,7 @@ export default function AdminUsers() {
             Novo professor
           </h2>
           <p className="mt-2 text-sm text-slate-500">
-            Super Admin pode cadastrar qualquer e-mail e definir permissões.
+            Super Admin pode cadastrar qualquer e-mail e definir permissoes.
           </p>
           <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
             <label className="grid gap-2 text-sm font-semibold text-slate-700">
@@ -97,7 +103,7 @@ export default function AdminUsers() {
               />
             </label>
             <label className="grid gap-2 text-sm font-semibold text-slate-700">
-              Senha inicial
+              Senha temporaria
               <Input
                 type="password"
                 minLength="6"
@@ -107,7 +113,7 @@ export default function AdminUsers() {
               />
             </label>
             <label className="grid gap-2 text-sm font-semibold text-slate-700">
-              Permissão
+              Permissao
               <Select
                 value={form.role}
                 onChange={(event) => setForm({ ...form, role: event.target.value })}
@@ -152,6 +158,10 @@ export default function AdminUsers() {
                         Super Admin
                       </Badge>
                     )}
+                    {admin.mustChangePassword && (
+                      <Badge variant="maintenance">troca pendente</Badge>
+                    )}
+                    {admin.active === false && <Badge variant="broken">inativo</Badge>}
                   </div>
                   <span className="mt-1 block text-sm text-slate-500">{admin.email}</span>
                 </div>
@@ -162,13 +172,22 @@ export default function AdminUsers() {
                   <option value="admin">Admin</option>
                   <option value="superadmin">Super Admin</option>
                 </Select>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => handleDelete(admin)}
-                >
-                  Remover
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => handleActiveChange(admin)}
+                  >
+                    {admin.active === false ? 'Ativar' : 'Desativar'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => handleDelete(admin)}
+                  >
+                    Remover
+                  </Button>
+                </div>
               </article>
             ))}
           </div>

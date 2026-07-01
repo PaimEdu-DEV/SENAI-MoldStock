@@ -6,7 +6,11 @@ import { AuthProvider } from './contexts/AuthProvider.jsx'
 import { useAuth } from './contexts/useAuth.js'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import AdminUsers from './pages/AdminUsers.jsx'
+import AuditLogs from './pages/AuditLogs.jsx'
+import Backups from './pages/Backups.jsx'
+import ChangePassword from './pages/ChangePassword.jsx'
 import FirebaseDiagnostics from './pages/FirebaseDiagnostics.jsx'
+import ForgotPassword from './pages/ForgotPassword.jsx'
 import Login from './pages/Login.jsx'
 import PieceDetails from './pages/PieceDetails.jsx'
 import PieceForm from './pages/PieceForm.jsx'
@@ -26,8 +30,17 @@ function AppRoutes() {
       <Route path="/" element={<PublicHome />} />
       <Route path="/peca/:id" element={<PieceDetails />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/esqueci-senha" element={<ForgotPassword />} />
       <Route path="/cadastro" element={<Register />} />
       <Route path="/diagnostico" element={<FirebaseDiagnostics />} />
+      <Route
+        path="/alterar-senha"
+        element={
+          <ProtectedRoute>
+            <ChangePassword />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/admin"
         element={
@@ -57,6 +70,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute requireSuperAdmin>
             <AdminUsers />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/auditoria"
+        element={
+          <ProtectedRoute requireSuperAdmin>
+            <AuditLogs />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/backups"
+        element={
+          <ProtectedRoute requireSuperAdmin>
+            <Backups />
           </ProtectedRoute>
         }
       />

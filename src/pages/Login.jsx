@@ -6,8 +6,9 @@ import senaiLogo from '../assets/senai.png'
 import { Button } from '../components/ui/button.jsx'
 import { Card } from '../components/ui/card.jsx'
 import { Input } from '../components/ui/input.jsx'
-import { loginAdmin } from '../services/userService.js'
+import { createAuditLog } from '../services/auditService.js'
 import { withTimeout } from '../services/timeout.js'
+import { loginAdmin } from '../services/userService.js'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -24,12 +25,17 @@ export default function Login() {
     setError('')
     setStep('Conectando no Firebase...')
     try {
-      await withTimeout(
+      const profile = await withTimeout(
         loginAdmin(email, password),
         'Demorou demais para entrar. Confira Authentication e banco de dados.',
         10000,
       )
-      navigate(location.state?.from || '/admin')
+      await createAuditLog(profile, {
+        action: 'LOGIN',
+        entity: 'system',
+        description: 'Professor entrou no sistema.',
+      }).catch(() => {})
+      navigate(profile?.mustChangePassword ? '/alterar-senha' : location.state?.from || '/admin')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -51,13 +57,13 @@ export default function Login() {
               <img src={senaiLogo} alt="SENAI" className="w-24" />
             </div>
             <span className="text-xs font-black uppercase tracking-[0.28em] text-senai-red">
-              Área administrativa
+              Area administrativa
             </span>
             <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em] text-slate-950">
               Entrar como professor
             </h1>
             <p className="mt-3 text-sm leading-6 text-slate-500">
-              Acesse o painel para gerenciar moldes, ocorrências e QR Codes.
+              Acesse o painel para gerenciar moldes, ocorrencias e QR Codes.
             </p>
           </div>
 
@@ -99,6 +105,10 @@ export default function Login() {
             Professor novo?{' '}
             <Link to="/cadastro" className="font-bold text-senai-red">
               Cadastrar com e-mail docente
+            </Link>
+            <span className="mx-2">ou</span>
+            <Link to="/esqueci-senha" className="font-bold text-senai-blue">
+              esqueci minha senha
             </Link>
           </p>
         </Card>

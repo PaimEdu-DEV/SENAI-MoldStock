@@ -1,12 +1,15 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   LayoutDashboard,
+  LockKeyhole,
   LogIn,
   LogOut,
   Moon,
+  ScrollText,
   ShieldCheck,
   Sun,
   Users,
+  Vault,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
@@ -56,7 +59,7 @@ export default function Navbar() {
       animate={{ y: 0, opacity: 1 }}
       className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/82 backdrop-blur-2xl"
     >
-      <div className="mx-auto flex h-[72px] w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-[72px] w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
         <NavLink to="/" className="group flex items-center gap-4">
           <div className="grid h-11 w-28 place-items-center rounded-2xl border border-slate-200 bg-white px-3 shadow-soft transition group-hover:-translate-y-0.5">
             <img src={senaiLogo} alt="SENAI" className="w-24" />
@@ -71,7 +74,7 @@ export default function Navbar() {
           </div>
         </NavLink>
 
-        <nav className="flex items-center justify-end gap-1 sm:gap-2">
+        <nav className="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
           <NavItem to="/">Catalogo</NavItem>
           <AnimatePresence>
             {isAdmin && (
@@ -88,9 +91,25 @@ export default function Navbar() {
             )}
           </AnimatePresence>
           {isSuperAdmin && (
-            <NavItem to="/admin/professores">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Professores</span>
+            <>
+              <NavItem to="/admin/professores">
+                <Users className="h-4 w-4" />
+                <span className="hidden xl:inline">Professores</span>
+              </NavItem>
+              <NavItem to="/admin/auditoria">
+                <ScrollText className="h-4 w-4" />
+                <span className="hidden xl:inline">Auditoria</span>
+              </NavItem>
+              <NavItem to="/admin/backups">
+                <Vault className="h-4 w-4" />
+                <span className="hidden xl:inline">Backups</span>
+              </NavItem>
+            </>
+          )}
+          {isAdmin && (
+            <NavItem to="/alterar-senha">
+              <LockKeyhole className="h-4 w-4" />
+              <span className="hidden xl:inline">Senha</span>
             </NavItem>
           )}
           {isAdmin ? (
