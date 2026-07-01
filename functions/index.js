@@ -55,6 +55,7 @@ exports.createProfessor = onCall(async (request) => {
     role,
     active: true,
     mustChangePassword: true,
+    temporaryPassword: password,
     createdAt: Date.now(),
     criadoEm: Date.now(),
     createdBy: actor.uid,

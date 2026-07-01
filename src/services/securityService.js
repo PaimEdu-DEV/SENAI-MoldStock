@@ -47,6 +47,7 @@ export async function completeFirstAccessPassword({ newPassword, profile }) {
   )
   await update(databaseRef(db, `admins/${user.uid}`), {
     mustChangePassword: false,
+    temporaryPassword: null,
     updatedAt: Date.now(),
   })
   await createAuditLog(profile, {

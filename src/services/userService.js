@@ -187,6 +187,7 @@ export async function createProfessor({ nome, email, password, role }, actingPro
         role,
         active: true,
         mustChangePassword: true,
+        temporaryPassword: password,
         createdBy: actingProfile?.uid || '',
         criadoEm: Date.now(),
         createdAt: Date.now(),
@@ -199,7 +200,7 @@ export async function createProfessor({ nome, email, password, role }, actingPro
       entity: 'user',
       entityId: credential.user.uid,
       description: `Professor ${email} criado com role ${role}.`,
-      after: { nome, email, role },
+      after: { nome, email, role, mustChangePassword: true },
     })
     await signOut(secondary.auth)
   } finally {

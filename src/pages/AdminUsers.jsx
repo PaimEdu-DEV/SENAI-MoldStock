@@ -1,4 +1,4 @@
-import { Shield, UserPlus } from 'lucide-react'
+import { Eye, EyeOff, Shield, UserPlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import PageHeader from '../components/PageHeader.jsx'
 import { Badge } from '../components/ui/badge.jsx'
@@ -24,6 +24,8 @@ export default function AdminUsers() {
   const { user, profile } = useAuth()
   const [admins, setAdmins] = useState([])
   const [form, setForm] = useState(emptyForm)
+  const [showCreatePassword, setShowCreatePassword] = useState(false)
+  const [visibleTemporaryPasswords, setVisibleTemporaryPasswords] = useState({})
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -81,7 +83,7 @@ export default function AdminUsers() {
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
-        eyebrow="Super Admin"
+        eyebrow={profile?.nome || profile?.name || 'Nome do Super Admin'}
         title="Gestao de professores"
         description="Controle permissoes administrativas, senhas temporarias e acessos docentes com rastreabilidade."
       />
@@ -114,13 +116,30 @@ export default function AdminUsers() {
             </label>
             <label className="grid gap-2 text-sm font-semibold text-slate-700">
               Senha temporaria
-              <Input
-                type="password"
-                minLength="6"
-                required
-                value={form.password}
-                onChange={(event) => setForm({ ...form, password: event.target.value })}
-              />
+              <span className="relative">
+                <Input
+                  type={showCreatePassword ? 'text' : 'password'}
+                  minLength="6"
+                  required
+                  value={form.password}
+                  onChange={(event) => setForm({ ...form, password: event.target.value })}
+                  className="pr-12"
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                  onClick={() => setShowCreatePassword(!showCreatePassword)}
+                  aria-label={
+                    showCreatePassword ? 'Ocultar senha temporaria' : 'Mostrar senha temporaria'
+                  }
+                >
+                  {showCreatePassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </span>
             </label>
             {error && (
               <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
@@ -164,6 +183,37 @@ export default function AdminUsers() {
                     {admin.active === false && <Badge variant="broken">inativo</Badge>}
                   </div>
                   <span className="mt-1 block text-sm text-slate-500">{admin.email}</span>
+                  {admin.mustChangePassword && admin.temporaryPassword && (
+                    <div className="mt-2 inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                      <span>Senha temporaria:</span>
+                      <code className="font-mono">
+                        {visibleTemporaryPasswords[admin.uid]
+                          ? admin.temporaryPassword
+                          : '••••••••'}
+                      </code>
+                      <button
+                        type="button"
+                        className="grid h-7 w-7 place-items-center rounded-lg text-amber-700 transition hover:bg-amber-100"
+                        onClick={() =>
+                          setVisibleTemporaryPasswords((current) => ({
+                            ...current,
+                            [admin.uid]: !current[admin.uid],
+                          }))
+                        }
+                        aria-label={
+                          visibleTemporaryPasswords[admin.uid]
+                            ? 'Ocultar senha temporaria'
+                            : 'Mostrar senha temporaria'
+                        }
+                      >
+                        {visibleTemporaryPasswords[admin.uid] ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <Select
                   value={admin.role}

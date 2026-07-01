@@ -36,7 +36,7 @@ function PasswordField({ label, value, onChange, visible, onToggle }) {
 }
 
 export default function ChangePassword() {
-  const { profile } = useAuth()
+  const { profile, adoptSessionProfile } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({
     newPassword: '',
@@ -61,10 +61,20 @@ export default function ChangePassword() {
         newPassword: form.newPassword,
         profile,
       })
+      adoptSessionProfile({
+        ...profile,
+        mustChangePassword: false,
+        temporaryPassword: null,
+      })
       setMessage('Senha definida com sucesso.')
       setTimeout(() => navigate('/admin'), 600)
     } catch (err) {
-      setError(err.message)
+      const rawMessage = String(err.message || '')
+      setError(
+        rawMessage.includes('PERMISSION_DENIED') || rawMessage.includes('Permission denied')
+          ? 'Acesso negado ao finalizar primeiro acesso. Publique as regras atualizadas do banco e tente novamente.'
+          : rawMessage,
+      )
     } finally {
       setLoading(false)
     }
