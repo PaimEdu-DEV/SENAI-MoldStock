@@ -42,10 +42,18 @@ async function createBootstrapSuperAdmin(email, password) {
     throw new Error('Credenciais invalidas.')
   }
 
-  const credential = await withTimeout(
-    createUserWithEmailAndPassword(auth, email, password),
-    'Nao foi possivel criar o Super Admin inicial no Authentication.',
-  )
+  let credential
+  try {
+    credential = await withTimeout(
+      createUserWithEmailAndPassword(auth, email, password),
+      'Nao foi possivel criar o Super Admin inicial no Authentication.',
+    )
+  } catch (error) {
+    if (error.code === 'auth/email-already-in-use') {
+      throw new Error('Este e-mail ja existe. Use a senha correta ou redefina a senha.')
+    }
+    throw error
+  }
   const profile = {
     nome: 'Eduardo Paim',
     name: 'Eduardo Paim',
@@ -77,6 +85,7 @@ export async function loginAdmin(email, password) {
     if (
       error.code === 'auth/user-not-found' ||
       error.code === 'auth/invalid-credential' ||
+      error.code === 'auth/wrong-password' ||
       error.code === 'auth/invalid-login-credentials'
     ) {
       return createBootstrapSuperAdmin(email, password)

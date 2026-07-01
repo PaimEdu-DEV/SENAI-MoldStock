@@ -10,6 +10,31 @@ import { createAuditLog } from '../services/auditService.js'
 import { withTimeout } from '../services/timeout.js'
 import { loginAdmin } from '../services/userService.js'
 
+function getLoginErrorMessage(error) {
+  const rawMessage = String(error?.message || '')
+  const code = error?.code || rawMessage
+
+  if (
+    code.includes('auth/invalid-credential') ||
+    code.includes('auth/wrong-password') ||
+    code.includes('auth/user-not-found') ||
+    code.includes('auth/invalid-login-credentials') ||
+    rawMessage.includes('Credenciais invalidas')
+  ) {
+    return 'Erro ao entrar. Usuario ou senha incorretos.'
+  }
+
+  if (rawMessage.includes('ja existe')) {
+    return 'Este e-mail ja existe. Use a senha correta ou redefina a senha.'
+  }
+
+  if (rawMessage.includes('desativado')) {
+    return rawMessage
+  }
+
+  return 'Erro ao entrar. Tente novamente em alguns instantes.'
+}
+
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -37,7 +62,7 @@ export default function Login() {
       }).catch(() => {})
       navigate(profile?.mustChangePassword ? '/alterar-senha' : location.state?.from || '/admin')
     } catch (err) {
-      setError(err.message)
+      setError(getLoginErrorMessage(err))
     } finally {
       setLoading(false)
       setStep('')
