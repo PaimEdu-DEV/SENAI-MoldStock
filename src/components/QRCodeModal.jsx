@@ -1,4 +1,4 @@
-import QRCode from 'qrcode'
+﻿import QRCode from 'qrcode'
 import { Download, QrCode } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Button } from './ui/button.jsx'
@@ -120,3 +120,5 @@ export default function QRCodeModal({ piece, onClose }) {
     </Dialog>
   )
 }
+
+

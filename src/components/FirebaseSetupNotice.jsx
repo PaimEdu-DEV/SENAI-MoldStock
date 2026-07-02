@@ -1,4 +1,4 @@
-import { Database, FileCode2 } from 'lucide-react'
+﻿import { Database, FileCode2 } from 'lucide-react'
 import { Card } from './ui/card.jsx'
 
 export default function FirebaseSetupNotice() {
@@ -27,3 +27,5 @@ export default function FirebaseSetupNotice() {
     </section>
   )
 }
+
+

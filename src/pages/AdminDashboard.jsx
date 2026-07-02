@@ -1,4 +1,4 @@
-import { CheckCircle2, Factory, Package, Plus, TriangleAlert } from 'lucide-react'
+﻿import { CheckCircle2, Factory, Package, Plus, TriangleAlert } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import FiltersBar from '../components/FiltersBar.jsx'
@@ -9,7 +9,6 @@ import QRCodeModal from '../components/QRCodeModal.jsx'
 import StatsCard from '../components/StatsCard.jsx'
 import { Button } from '../components/ui/button.jsx'
 import { useAuth } from '../contexts/useAuth.js'
-import { createAuditLog } from '../services/auditService.js'
 import { deletePiece, watchPieces } from '../services/pieceService.js'
 
 const initialFilters = {
@@ -19,7 +18,7 @@ const initialFilters = {
 }
 
 function isMaintenanceStatus(status) {
-  return status === 'Em manutenção' || status === 'Em manutenÃ§Ã£o'
+  return status === 'Em manutenção'
 }
 
 function filterPieces(pieces, filters) {
@@ -71,13 +70,7 @@ export default function AdminDashboard() {
 
   async function handleDelete(piece) {
     if (!isSuperAdmin) {
-      await createAuditLog(profile, {
-        action: 'PERMISSION_DENIED',
-        entity: 'piece',
-        entityId: piece.id,
-        description: `Tentativa negada de excluir a peca ${piece.nome}.`,
-      }).catch(() => {})
-      setError('Apenas Super Admin pode excluir pecas.')
+      setError('Apenas administradores podem excluir peças.')
       return
     }
 
@@ -87,12 +80,6 @@ export default function AdminDashboard() {
 
   async function handleQrCode(piece) {
     setQrPiece(piece)
-    await createAuditLog(profile, {
-      action: 'EXPORT',
-      entity: 'qrcode',
-      entityId: piece.id,
-      description: `QR Code gerado para ${piece.nome}.`,
-    }).catch(() => {})
   }
 
   return (
@@ -100,12 +87,12 @@ export default function AdminDashboard() {
       <PageHeader
         eyebrow="Painel operacional"
         title="Estoque de moldes"
-        description="Gerencie disponibilidade, manutencao, ocorrencias e QR Codes com uma visao rapida do estado do laboratorio."
+        description="Gerencie disponibilidade, manutenção, ocorrências e QR Codes com uma visão rápida do estado do laboratório."
         action={
           <Button asChild size="lg">
             <Link to="/admin/pecas/nova">
               <Plus className="h-5 w-5" />
-              Nova peca
+              Nova peça
             </Link>
           </Button>
         }
@@ -120,16 +107,16 @@ export default function AdminDashboard() {
         />
         <StatsCard
           icon={CheckCircle2}
-          label="Disponiveis"
+          label="Disponíveis"
           value={stats.ok}
-          description="Prontos para utilizacao."
+          description="Prontos para utilização."
           tone="ok"
         />
         <StatsCard
           icon={Factory}
-          label="Em manutencao"
+          label="Em manutenção"
           value={stats.maintenance}
-          description="Aguardando reparo ou inspecao."
+          description="Aguardando reparo ou inspeção."
           tone="maintenance"
         />
         <StatsCard
@@ -168,3 +155,6 @@ export default function AdminDashboard() {
     </div>
   )
 }
+
+
+

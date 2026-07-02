@@ -1,4 +1,4 @@
-export function withTimeout(promise, message, timeoutMs = 12000) {
+﻿export function withTimeout(promise, message, timeoutMs = 12000) {
   let timeoutId
   const timeout = new Promise((_, reject) => {
     timeoutId = window.setTimeout(() => {
@@ -10,3 +10,5 @@ export function withTimeout(promise, message, timeoutMs = 12000) {
     window.clearTimeout(timeoutId)
   })
 }
+
+

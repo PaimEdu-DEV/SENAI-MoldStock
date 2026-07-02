@@ -1,9 +1,16 @@
-import { Eye, EyeOff, Shield, UserPlus } from 'lucide-react'
+﻿import { Eye, EyeOff, Shield, ShieldCheck, UserPlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import PageHeader from '../components/PageHeader.jsx'
 import { Badge } from '../components/ui/badge.jsx'
 import { Button } from '../components/ui/button.jsx'
 import { Card } from '../components/ui/card.jsx'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '../components/ui/dialog.jsx'
 import { Input, Select } from '../components/ui/input.jsx'
 import { useAuth } from '../contexts/useAuth.js'
 import { reauthenticateCurrentUser } from '../services/securityService.js'
@@ -26,6 +33,9 @@ export default function AdminUsers() {
   const [form, setForm] = useState(emptyForm)
   const [showCreatePassword, setShowCreatePassword] = useState(false)
   const [visibleTemporaryPasswords, setVisibleTemporaryPasswords] = useState({})
+  const [roleRequest, setRoleRequest] = useState(null)
+  const [adminPassword, setAdminPassword] = useState('')
+  const [confirmingRole, setConfirmingRole] = useState(false)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -47,25 +57,38 @@ export default function AdminUsers() {
 
   async function handleRoleChange(admin, role) {
     if (admin.uid === user.uid && role !== 'superadmin') {
-      setError('Voce nao pode remover seu proprio perfil de Super Admin.')
+      setError('Você não pode remover seu próprio perfil de administrador.')
       return
     }
-    const password = window.prompt(
-      `Confirme sua senha para alterar a permissao de ${admin.nome}.`,
-    )
-    if (!password) return
+    setError('')
+    setAdminPassword('')
+    setRoleRequest({ admin, role })
+  }
+
+  async function confirmRoleChange(event) {
+    event.preventDefault()
+    if (!roleRequest) return
+    setConfirmingRole(true)
     try {
-      await reauthenticateCurrentUser(password)
+      await reauthenticateCurrentUser(adminPassword)
+      await updateProfessor(
+        roleRequest.admin.uid,
+        { role: roleRequest.role },
+        profile,
+        roleRequest.admin,
+      )
+      setRoleRequest(null)
+      setAdminPassword('')
     } catch (err) {
       setError(err.message)
-      return
+    } finally {
+      setConfirmingRole(false)
     }
-    await updateProfessor(admin.uid, { role }, profile, admin)
   }
 
   async function handleActiveChange(admin) {
     if (admin.uid === user.uid) {
-      setError('Voce nao pode desativar seu proprio acesso.')
+      setError('Você não pode desativar seu próprio acesso.')
       return
     }
     await updateProfessor(admin.uid, { active: !admin.active }, profile, admin)
@@ -73,7 +96,7 @@ export default function AdminUsers() {
 
   async function handleDelete(admin) {
     if (admin.uid === user.uid) {
-      setError('Voce nao pode excluir seu proprio acesso.')
+      setError('Você não pode excluir seu próprio acesso.')
       return
     }
     const confirmed = window.confirm(`Remover ${admin.nome}?`)
@@ -83,9 +106,9 @@ export default function AdminUsers() {
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
-        eyebrow={profile?.nome || profile?.name || 'Nome do Super Admin'}
-        title="Gestao de professores"
-        description="Controle permissoes administrativas, senhas temporarias e acessos docentes com rastreabilidade."
+        eyebrow={profile?.nome || profile?.name || 'Administrador'}
+        title="Gestão de professores"
+        description="Controle permissões administrativas, senhas temporárias e acessos docentes com rastreabilidade."
       />
 
       <section className="grid gap-6 lg:grid-cols-[420px_1fr]">
@@ -94,7 +117,7 @@ export default function AdminUsers() {
             Novo professor
           </h2>
           <p className="mt-2 text-sm text-slate-500">
-            O novo professor entra como Admin e troca a senha temporaria no primeiro acesso.
+            O novo professor entra como administrador e troca a senha temporária no primeiro acesso.
           </p>
           <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
             <label className="grid gap-2 text-sm font-semibold text-slate-700">
@@ -115,7 +138,7 @@ export default function AdminUsers() {
               />
             </label>
             <label className="grid gap-2 text-sm font-semibold text-slate-700">
-              Senha temporaria
+              Senha temporária
               <span className="relative">
                 <Input
                   type={showCreatePassword ? 'text' : 'password'}
@@ -130,7 +153,7 @@ export default function AdminUsers() {
                   className="absolute right-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                   onClick={() => setShowCreatePassword(!showCreatePassword)}
                   aria-label={
-                    showCreatePassword ? 'Ocultar senha temporaria' : 'Mostrar senha temporaria'
+                    showCreatePassword ? 'Ocultar senha temporária' : 'Mostrar senha temporária'
                   }
                 >
                   {showCreatePassword ? (
@@ -174,7 +197,7 @@ export default function AdminUsers() {
                     {admin.role === 'superadmin' && (
                       <Badge variant="blue">
                         <Shield className="h-3 w-3" />
-                        Super Admin
+                        Administrador
                       </Badge>
                     )}
                     {admin.mustChangePassword && (
@@ -185,7 +208,7 @@ export default function AdminUsers() {
                   <span className="mt-1 block text-sm text-slate-500">{admin.email}</span>
                   {admin.mustChangePassword && admin.temporaryPassword && (
                     <div className="mt-2 inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
-                      <span>Senha temporaria:</span>
+                      <span>Senha temporária:</span>
                       <code className="font-mono">
                         {visibleTemporaryPasswords[admin.uid]
                           ? admin.temporaryPassword
@@ -202,8 +225,8 @@ export default function AdminUsers() {
                         }
                         aria-label={
                           visibleTemporaryPasswords[admin.uid]
-                            ? 'Ocultar senha temporaria'
-                            : 'Mostrar senha temporaria'
+                            ? 'Ocultar senha temporária'
+                            : 'Mostrar senha temporária'
                         }
                       >
                         {visibleTemporaryPasswords[admin.uid] ? (
@@ -220,7 +243,7 @@ export default function AdminUsers() {
                   onChange={(event) => handleRoleChange(admin, event.target.value)}
                 >
                   <option value="admin">Admin</option>
-                  <option value="superadmin">Super Admin</option>
+                  <option value="superadmin">Administrador</option>
                 </Select>
                 <div className="flex flex-wrap gap-2">
                   <Button
@@ -243,6 +266,46 @@ export default function AdminUsers() {
           </div>
         </Card>
       </section>
+
+      <Dialog open={Boolean(roleRequest)} onOpenChange={(open) => !open && setRoleRequest(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-orange-100 text-orange-700">
+              <ShieldCheck className="h-6 w-6" />
+            </div>
+            <DialogTitle>Confirmar alteração de permissão</DialogTitle>
+            <DialogDescription>
+              Informe sua senha para alterar a permissão de{' '}
+              {roleRequest?.admin?.nome || 'professor'}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form className="grid gap-4" onSubmit={confirmRoleChange}>
+            <label className="grid gap-2 text-sm font-semibold text-slate-700">
+              Sua senha
+              <Input
+                type="password"
+                required
+                value={adminPassword}
+                onChange={(event) => setAdminPassword(event.target.value)}
+                autoFocus
+              />
+            </label>
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <Button type="button" variant="secondary" onClick={() => setRoleRequest(null)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={confirmingRole}>
+                <ShieldCheck className="h-4 w-4" />
+                {confirmingRole ? 'Confirmando...' : 'Confirmar'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
+
+
+

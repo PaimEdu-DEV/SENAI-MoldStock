@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+﻿import { motion } from 'framer-motion'
 import { Download, Search, ScrollText } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import PageHeader from '../components/PageHeader.jsx'
@@ -28,15 +28,14 @@ const actions = [
   'CREATE',
   'UPDATE',
   'DELETE',
-  'LOGIN',
-  'LOGOUT',
   'BACKUP',
   'RESTORE',
-  'EXPORT',
   'PERMISSION_DENIED',
 ]
 
 const entities = ['Todos', 'piece', 'user', 'backup', 'system', 'occurrence', 'qrcode']
+const auditableActions = new Set(['CREATE', 'UPDATE', 'DELETE', 'BACKUP', 'RESTORE', 'PERMISSION_DENIED'])
+const auditableEntities = new Set(['piece', 'user', 'backup', 'system', 'occurrence'])
 
 export default function AuditLogs() {
   const { profile } = useAuth()
@@ -47,12 +46,26 @@ export default function AuditLogs() {
 
   useEffect(() => watchLogs(setLogs, (err) => setError(err.message)), [])
 
-  const users = useMemo(
-    () => ['Todos', ...new Set(logs.map((log) => log.userEmail || log.userName).filter(Boolean))],
+  const auditLogs = useMemo(
+    () =>
+      logs.filter(
+        (log) =>
+          auditableActions.has(log.action) &&
+          auditableEntities.has(log.entity) &&
+          log.entity !== 'qrcode',
+      ),
     [logs],
   )
 
-  const filteredLogs = useMemo(() => filterLogs(logs, filters), [logs, filters])
+  const users = useMemo(
+    () => [
+      'Todos',
+      ...new Set(auditLogs.map((log) => log.userEmail || log.userName).filter(Boolean)),
+    ],
+    [auditLogs],
+  )
+
+  const filteredLogs = useMemo(() => filterLogs(auditLogs, filters), [auditLogs, filters])
   const visibleLogs = filteredLogs.slice(0, limit)
 
   function handleExport() {
@@ -62,9 +75,9 @@ export default function AuditLogs() {
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
-        eyebrow="Super Admin"
+        eyebrow="Auditoria"
         title="Auditoria do sistema"
-        description="Rastreie acoes administrativas, seguranca, backups e operacoes sensiveis."
+        description="Rastreie ações administrativas, permissões, backups e operações sensíveis."
         action={
           <Button type="button" onClick={handleExport} disabled={!filteredLogs.length}>
             <Download className="h-4 w-4" />
@@ -78,7 +91,7 @@ export default function AuditLogs() {
           <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
           <Input
             className="pl-10"
-            placeholder="Pesquisar usuario, acao, entidade ou descricao"
+            placeholder="Pesquisar usuário, ação, entidade ou descrição"
             value={filters.search}
             onChange={(event) => setFilters({ ...filters, search: event.target.value })}
           />
@@ -135,10 +148,10 @@ export default function AuditLogs() {
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/70 text-left text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
                     <th className="px-5 py-4">Data</th>
-                    <th className="px-5 py-4">Usuario</th>
-                    <th className="px-5 py-4">Acao</th>
+                    <th className="px-5 py-4">Usuário</th>
+                    <th className="px-5 py-4">Ação</th>
                     <th className="px-5 py-4">Entidade</th>
-                    <th className="px-5 py-4">Descricao</th>
+                    <th className="px-5 py-4">Descrição</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -200,3 +213,6 @@ export default function AuditLogs() {
     </div>
   )
 }
+
+
+

@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+﻿import { motion } from 'framer-motion'
 import { Filter, MapPin, Search } from 'lucide-react'
 import { Input, Select } from './ui/input.jsx'
 
@@ -16,7 +16,7 @@ export default function FiltersBar({ filters, setFilters, showLocation = true })
             className="h-14 rounded-2xl border-slate-100 bg-slate-50 pl-13 text-base shadow-inner shadow-slate-200/30"
             value={filters.search}
             onChange={(event) => setFilters({ ...filters, search: event.target.value })}
-            placeholder="Buscar por codigo, nome, categoria ou localizacao"
+            placeholder="Buscar por código, nome, categoria ou localização"
           />
         </label>
 
@@ -43,7 +43,7 @@ export default function FiltersBar({ filters, setFilters, showLocation = true })
               onChange={(event) =>
                 setFilters({ ...filters, localizacao: event.target.value })
               }
-              placeholder="Localizacao"
+              placeholder="Localização"
             />
           </label>
         )}
@@ -51,3 +51,6 @@ export default function FiltersBar({ filters, setFilters, showLocation = true })
     </motion.section>
   )
 }
+
+
+

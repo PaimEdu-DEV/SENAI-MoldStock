@@ -1,9 +1,8 @@
-import {
+﻿import {
   get,
   off,
   onValue,
   ref as databaseRef,
-  remove,
   set,
   update,
 } from 'firebase/database'
@@ -11,6 +10,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
+  updatePassword,
 } from 'firebase/auth'
 import { auth, createSecondaryAuth, db, requireFirebase } from './firebase.js'
 import { createAuditLog } from './auditService.js'
@@ -28,7 +28,7 @@ export async function getAdminProfile(uid) {
   requireFirebase()
   const snapshot = await withTimeout(
     get(adminRef(uid)),
-    'Nao foi possivel consultar o professor no Realtime Database. Confira as regras do banco.',
+    'Não foi possível consultar o professor. Confira as regras do banco.',
   )
   if (!snapshot.exists()) return null
   return { uid, ...snapshot.val() }
@@ -46,11 +46,11 @@ async function createBootstrapSuperAdmin(email, password) {
   try {
     credential = await withTimeout(
       createUserWithEmailAndPassword(auth, email, password),
-      'Nao foi possivel criar o Super Admin inicial no Authentication.',
+      'Não foi possível criar o administrador inicial.',
     )
   } catch (error) {
     if (error.code === 'auth/email-already-in-use') {
-      throw new Error('Este e-mail ja existe. Use a senha correta ou redefina a senha.')
+      throw new Error('Este e-mail já existe. Use a senha correta ou redefina a senha.')
     }
     throw error
   }
@@ -68,7 +68,7 @@ async function createBootstrapSuperAdmin(email, password) {
   }
   await withTimeout(
     set(adminRef(credential.user.uid), profile),
-    'Super Admin criado no Authentication, mas o banco recusou salvar o perfil. Confira as regras.',
+    'Administrador criado, mas o banco recusou salvar o perfil. Confira as regras.',
   )
   return { uid: credential.user.uid, ...profile }
 }
@@ -79,7 +79,7 @@ export async function loginAdmin(email, password) {
   try {
     credential = await withTimeout(
       signInWithEmailAndPassword(auth, email, password),
-      'Login demorou demais. Confira se Authentication > E-mail/senha esta ativado.',
+      'O login demorou demais. Confira se e-mail/senha está ativo.',
     )
   } catch (error) {
     if (
@@ -129,11 +129,11 @@ export async function loginAdmin(email, password) {
     }
 
     await signOut(auth)
-    throw new Error('Este usuario existe no Authentication, mas nao esta cadastrado em admins no Realtime Database.')
+    throw new Error('Este usuário existe na autenticação, mas não está cadastrado como professor.')
   }
   if (profile.active === false) {
     await signOut(auth)
-    throw new Error('Este acesso esta desativado. Procure um Super Admin.')
+    throw new Error('Este acesso está desativado. Procure um administrador.')
   }
   return profile
 }
@@ -141,11 +141,56 @@ export async function loginAdmin(email, password) {
 export async function createProfessor({ nome, email, password, role }, actingProfile) {
   const secondary = createSecondaryAuth()
   try {
+    const adminsSnapshot = await get(adminRef())
+    const admins = adminsSnapshot.val() || {}
+    const existingEntry = Object.entries(admins).find(
+      ([, data]) => data.email?.toLowerCase() === email.toLowerCase(),
+    )
+
+    if (existingEntry) {
+      const [uid, existing] = existingEntry
+      if (existing.active !== false) {
+        throw new Error('Este e-mail já está cadastrado como professor.')
+      }
+      if (existing.temporaryPassword) {
+        await signInWithEmailAndPassword(
+          secondary.auth,
+          existing.email,
+          existing.temporaryPassword,
+        )
+        await updatePassword(secondary.auth.currentUser, password)
+      }
+      await withTimeout(
+        set(adminRef(uid), {
+          ...existing,
+          nome,
+          name: nome,
+          email: email.toLowerCase(),
+          role,
+          active: true,
+          mustChangePassword: true,
+          temporaryPassword: password,
+          updatedAt: Date.now(),
+        }),
+        'Não foi possível reativar o professor no banco.',
+      )
+      await createAuditLog(actingProfile, {
+        action: 'UPDATE',
+        entity: 'user',
+        entityId: uid,
+        description: `${nome} reativado com senha temporária.`,
+        before: existing,
+        after: { nome, email, role, active: true, mustChangePassword: true },
+      })
+      await signOut(secondary.auth)
+      return
+    }
+
     let credential
     try {
       credential = await withTimeout(
         createUserWithEmailAndPassword(secondary.auth, email, password),
-        'Cadastro do professor demorou demais. Confira o Authentication.',
+        'O cadastro do professor demorou demais. Confira a autenticação.',
       )
     } catch (error) {
       if (error.code !== 'auth/email-already-in-use') {
@@ -154,7 +199,7 @@ export async function createProfessor({ nome, email, password, role }, actingPro
 
       credential = await withTimeout(
         signInWithEmailAndPassword(secondary.auth, email, password),
-        'Este e-mail ja existe no Authentication. Use a mesma senha temporaria anterior ou remova o usuario no Firebase Authentication.',
+        'Este e-mail já existe. Use a mesma senha temporária anterior ou remova o usuário no Firebase Authentication.',
       )
     }
 
@@ -172,13 +217,13 @@ export async function createProfessor({ nome, email, password, role }, actingPro
         createdAt: Date.now(),
         updatedAt: Date.now(),
       }),
-      'Professor criado no Authentication, mas o Realtime Database nao aceitou salvar.',
+      'Professor criado, mas o banco não aceitou salvar o perfil.',
     )
     await createAuditLog(actingProfile, {
       action: 'CREATE',
       entity: 'user',
       entityId: credential.user.uid,
-      description: `Professor ${email} criado com role ${role}.`,
+      description: `${nome} criado como professor administrador.`,
       after: { nome, email, role, mustChangePassword: true },
     })
     await signOut(secondary.auth)
@@ -209,11 +254,23 @@ export async function updateProfessor(uid, data, actingProfile, before = null) {
     ...data,
     updatedAt: Date.now(),
   })
+  let description = 'Dados do professor atualizados.'
+  if (Object.hasOwn(data, 'role') && before?.role !== data.role) {
+    const name = before?.nome || before?.name || before?.email || 'Professor'
+    if (data.role === 'superadmin') {
+      description = `${name} promovido a administrador.`
+    } else {
+      description = `${name} rebaixado para professor.`
+    }
+  } else if (Object.hasOwn(data, 'active')) {
+    const name = before?.nome || before?.name || before?.email || 'Professor'
+    description = data.active ? `${name} reativado.` : `${name} desativado.`
+  }
   await createAuditLog(actingProfile, {
     action: 'UPDATE',
     entity: 'user',
     entityId: uid,
-    description: 'Permissoes ou dados de professor atualizados.',
+    description,
     before,
     after: data,
   })
@@ -221,12 +278,17 @@ export async function updateProfessor(uid, data, actingProfile, before = null) {
 
 export async function deleteProfessor(uid, actingProfile, before = null) {
   requireFirebase()
-  await remove(adminRef(uid))
+  await update(adminRef(uid), {
+    active: false,
+    updatedAt: Date.now(),
+  })
   await createAuditLog(actingProfile, {
     action: 'DELETE',
     entity: 'user',
     entityId: uid,
-    description: 'Professor removido do painel administrativo.',
+    description: `${before?.nome || before?.email || 'Professor'} desativado no painel administrativo.`,
     before,
   })
 }
+
+

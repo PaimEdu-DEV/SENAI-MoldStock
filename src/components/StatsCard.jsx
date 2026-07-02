@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+﻿import { motion } from 'framer-motion'
 import { cn } from '../lib/utils.js'
 import { Card } from './ui/card.jsx'
 
@@ -39,3 +39,5 @@ export default function StatsCard({ icon: Icon, label, value, description, tone 
     </motion.div>
   )
 }
+
+

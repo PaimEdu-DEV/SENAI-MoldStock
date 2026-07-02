@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion'
+﻿import { AnimatePresence, motion } from 'framer-motion'
 import {
   LayoutDashboard,
   LogIn,
@@ -74,7 +74,7 @@ export default function Navbar() {
         </NavLink>
 
         <nav className="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
-          <NavItem to="/">Catalogo</NavItem>
+          <NavItem to="/">Catálogo</NavItem>
           <AnimatePresence>
             {isAdmin && (
               <motion.div
@@ -116,7 +116,7 @@ export default function Navbar() {
             <Button asChild variant="red" size="sm">
               <NavLink to="/login">
                 <LogIn className="h-4 w-4" />
-                Entrar
+                Professor
               </NavLink>
             </Button>
           )}
@@ -141,3 +141,6 @@ export default function Navbar() {
     </motion.header>
   )
 }
+
+
+

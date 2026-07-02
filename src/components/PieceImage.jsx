@@ -1,4 +1,4 @@
-import { Boxes } from 'lucide-react'
+﻿import { Boxes } from 'lucide-react'
 import { cn } from '../lib/utils.js'
 
 export default function PieceImage({ src, alt, className, placeholderClassName }) {
@@ -26,3 +26,5 @@ export default function PieceImage({ src, alt, className, placeholderClassName }
     </div>
   )
 }
+
+

@@ -1,4 +1,4 @@
-import { Siren } from 'lucide-react'
+﻿import { Siren } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/useAuth.js'
 import { createOccurrence } from '../services/occurrenceService.js'
@@ -144,3 +144,5 @@ export default function OccurrenceModal({ piece, mode = 'occurrence', onClose })
     </Dialog>
   )
 }
+
+

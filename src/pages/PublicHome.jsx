@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+﻿import { motion } from 'framer-motion'
 import { CheckCircle2, Factory, Package, ScanLine, TriangleAlert } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import FiltersBar from '../components/FiltersBar.jsx'
@@ -162,3 +162,5 @@ export default function PublicHome() {
     </div>
   )
 }
+
+

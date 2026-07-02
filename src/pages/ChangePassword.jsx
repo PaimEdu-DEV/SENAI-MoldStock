@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+﻿import { motion } from 'framer-motion'
 import { Eye, EyeOff, LockKeyhole } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -52,7 +52,7 @@ export default function ChangePassword() {
     setError('')
     setMessage('')
     if (form.newPassword !== form.confirmPassword) {
-      setError('A confirmacao da senha nao confere.')
+      setError('A confirmação da senha não confere.')
       return
     }
     setLoading(true)
@@ -85,7 +85,7 @@ export default function ChangePassword() {
       <PageHeader
         eyebrow="Primeiro acesso"
         title="Defina sua senha"
-        description="Voce entrou com uma senha temporaria criada pelo Super Admin. Defina uma senha propria para liberar o painel."
+        description="Você entrou com uma senha temporária criada pelo Administrador. Defina uma senha própria para liberar o painel."
       />
 
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
@@ -125,3 +125,6 @@ export default function ChangePassword() {
     </section>
   )
 }
+
+
+

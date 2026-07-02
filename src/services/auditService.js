@@ -1,4 +1,4 @@
-import { off, onValue, push, ref as databaseRef, set } from 'firebase/database'
+﻿import { off, onValue, push, ref as databaseRef, set } from 'firebase/database'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { db, requireFirebase } from './firebase.js'
@@ -137,3 +137,5 @@ export async function exportLogsPdf(logs, filters, profile) {
 
   doc.save(`logs-moldstock-${new Date().toISOString().slice(0, 10)}.pdf`)
 }
+
+

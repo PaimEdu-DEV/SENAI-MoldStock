@@ -1,4 +1,4 @@
-import {
+﻿import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   sendPasswordResetEmail,
@@ -68,3 +68,5 @@ export async function completeFirstAccessPassword({ newPassword, profile }) {
     description: 'Senha inicial definida no primeiro acesso.',
   }).catch(() => {})
 }
+
+

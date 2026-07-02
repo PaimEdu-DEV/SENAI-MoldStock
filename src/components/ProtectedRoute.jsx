@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from 'react-router-dom'
+﻿import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/useAuth.js'
 
 export default function ProtectedRoute({ children, requireSuperAdmin = false }) {
@@ -9,7 +9,7 @@ export default function ProtectedRoute({ children, requireSuperAdmin = false }) 
     return (
       <div className="grid min-h-[calc(100vh-73px)] place-items-center">
         <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-semibold text-slate-500 shadow-soft">
-          Verificando permissao...
+          Verificando permissão...
         </div>
       </div>
     )
@@ -33,3 +33,6 @@ export default function ProtectedRoute({ children, requireSuperAdmin = false }) 
 
   return children
 }
+
+
+

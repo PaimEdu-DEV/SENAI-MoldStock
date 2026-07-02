@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+﻿import { motion } from 'framer-motion'
 import { Download, RotateCcw, ShieldAlert, Vault } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import PageHeader from '../components/PageHeader.jsx'
@@ -59,9 +59,9 @@ export default function Backups() {
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
-        eyebrow="Super Admin"
+        eyebrow="Administrador"
         title="Backups internos"
-        description="Crie, exporte e restaure snapshots do Realtime Database. O sistema mantem somente os dois backups mais recentes."
+        description="Crie, exporte e restaure snapshots do banco. O sistema mantém somente os dois backups mais recentes."
         action={
           <Button type="button" onClick={handleCreateBackup} disabled={Boolean(loading)}>
             <Vault className="h-4 w-4" />
@@ -74,7 +74,7 @@ export default function Backups() {
         <div className="flex gap-3">
           <ShieldAlert className="mt-0.5 h-5 w-5 text-amber-700" />
           <div>
-            <h2 className="font-semibold text-amber-950">Restauracao exige cuidado</h2>
+            <h2 className="font-semibold text-amber-950">Restauração exige cuidado</h2>
             <p className="mt-1 text-sm leading-6 text-amber-800">
               Antes de restaurar, o MoldStock cria um backup pre_restore. Imagens nao sao
               duplicadas: o backup guarda apenas as URLs/base64 usadas pelas pecas.
@@ -156,3 +156,5 @@ export default function Backups() {
     </div>
   )
 }
+
+

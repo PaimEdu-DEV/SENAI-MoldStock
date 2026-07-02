@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+﻿import { motion } from 'framer-motion'
 import { MailCheck } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -94,3 +94,5 @@ export default function ForgotPassword() {
     </section>
   )
 }
+
+

@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+﻿import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import FirebaseSetupNotice from './components/FirebaseSetupNotice.jsx'
 import Navbar from './components/Navbar.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
@@ -106,3 +106,5 @@ function App() {
 }
 
 export default App
+
+

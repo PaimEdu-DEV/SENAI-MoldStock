@@ -1,4 +1,4 @@
-import { PackageSearch } from 'lucide-react'
+﻿import { PackageSearch } from 'lucide-react'
 import { Card } from './ui/card.jsx'
 
 export default function EmptyState({ title = 'Nenhum registro encontrado', description }) {
@@ -14,3 +14,5 @@ export default function EmptyState({ title = 'Nenhum registro encontrado', descr
     </Card>
   )
 }
+
+

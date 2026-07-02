@@ -1,4 +1,4 @@
-import {
+﻿import {
   off,
   onValue,
   push,
@@ -45,3 +45,5 @@ export async function createOccurrence(data, userProfile) {
     after: data,
   })
 }
+
+

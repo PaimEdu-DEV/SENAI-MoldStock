@@ -1,4 +1,4 @@
-import { Activity, CheckCircle2, XCircle } from 'lucide-react'
+﻿import { Activity, CheckCircle2, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import PageHeader from '../components/PageHeader.jsx'
 import { Card } from '../components/ui/card.jsx'
@@ -82,3 +82,5 @@ export default function FirebaseDiagnostics() {
     </div>
   )
 }
+
+
