@@ -74,11 +74,11 @@ export default function PublicHome() {
         title="Controle inteligente de moldes"
         description="Um catálogo operacional para localizar, auditar e acompanhar o estado dos moldes e peças do setor de Plásticos com precisão."
         action={
-          <div className="hidden w-72 rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-soft lg:block">
+          <div className="hidden justify-items-center lg:grid">
             <img
               src={senaiMoldStockLogo}
               alt="SENAI MoldStock"
-              className="mx-auto h-16 w-auto object-contain"
+              className="h-40 w-auto max-w-[360px] object-contain drop-shadow-[0_22px_45px_rgba(15,23,42,0.14)]"
             />
           </div>
         }

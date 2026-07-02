@@ -16,6 +16,7 @@ import senaiLogo from '../assets/senai.png'
 import { useAuth } from '../contexts/useAuth.js'
 import { cn } from '../lib/utils.js'
 import { Button } from './ui/button.jsx'
+import InstallPwaButton from './InstallPwaButton.jsx'
 
 function NavItem({ to, children }) {
   return (
@@ -120,6 +121,7 @@ export default function Navbar() {
               </NavLink>
             </Button>
           )}
+          <InstallPwaButton />
           <Button
             type="button"
             variant="secondary"
