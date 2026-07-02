@@ -19,6 +19,7 @@ import {
   canRestoreBackups,
   createBackup,
   downloadBackupJson,
+  ensureAutomaticBackup,
   restoreBackup,
   watchBackups,
 } from '../services/backupService.js'
@@ -28,6 +29,7 @@ export default function Backups() {
   const { profile } = useAuth()
   const [backups, setBackups] = useState([])
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState('')
   const [restoreTarget, setRestoreTarget] = useState(null)
   const [restoreForm, setRestoreForm] = useState({ confirmation: '', password: '' })
@@ -35,11 +37,26 @@ export default function Backups() {
 
   useEffect(() => watchBackups(setBackups, (err) => setError(err.message)), [])
 
+  useEffect(() => {
+    if (!profile?.uid) return
+    ensureAutomaticBackup(profile)
+      .then((backup) => {
+        if (backup) {
+          setSuccess('Backup automático criado para o ciclo atual.')
+        }
+      })
+      .catch(() => {
+        // Backup automático não deve interromper o uso da tela.
+      })
+  }, [profile])
+
   async function handleCreateBackup() {
     setLoading('create')
     setError('')
+    setSuccess('')
     try {
       await createBackup(profile, 'manual')
+      setSuccess('Backup criado com sucesso.')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -49,6 +66,7 @@ export default function Backups() {
 
   function openRestoreDialog(backup) {
     setError('')
+    setSuccess('')
     setRestoreTarget(backup)
     setRestoreForm({ confirmation: '', password: '' })
   }
@@ -58,11 +76,13 @@ export default function Backups() {
     if (!restoreTarget || restoreForm.confirmation !== 'RESTAURAR') return
     setLoading(restoreTarget.id)
     setError('')
+    setSuccess('')
     try {
       await reauthenticateCurrentUser(restoreForm.password)
       await restoreBackup(profile, restoreTarget)
       setRestoreTarget(null)
       setRestoreForm({ confirmation: '', password: '' })
+      setSuccess('Backup restaurado com sucesso.')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -91,7 +111,7 @@ export default function Backups() {
             <h2 className="font-semibold text-amber-950">Restauração exige cuidado</h2>
             <p className="mt-1 text-sm leading-6 text-amber-800">
               Antes de restaurar, o MoldStock cria um backup pre_restore. Imagens não são
-              duplicadas: o backup guarda apenas as URLs/base64 usadas pelos moldes.
+              duplicadas: o backup guarda apenas os moldes e as URLs/base64 das imagens.
             </p>
           </div>
         </div>
@@ -100,6 +120,12 @@ export default function Backups() {
       {error && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
           {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-700">
+          {success}
         </div>
       )}
 
@@ -124,9 +150,7 @@ export default function Backups() {
                   </div>
                   <p className="mt-2 text-sm text-slate-500">
                     Criado por {backup.createdByName || 'Sistema'} - Moldes:{' '}
-                    {backup.counts?.pieces || 0} - Ocorrências:{' '}
-                    {backup.counts?.occurrences || 0} - Usuários:{' '}
-                    {backup.counts?.users || 0} - Logs: {backup.counts?.logs || 0}
+                    {backup.counts?.pieces || 0}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">

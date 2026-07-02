@@ -11,11 +11,15 @@ import { createAuditLog } from './auditService.js'
 import { db, requireFirebase } from './firebase.js'
 import { withTimeout } from './timeout.js'
 
-const COLLECTIONS = ['pecas', 'ocorrencias', 'admins', 'logs']
+const COLLECTIONS = ['pecas']
 const RESTORE_OWNER_EMAIL = 'epaim@dev.com.br'
 
 export function canRestoreBackups(profile) {
   return profile?.email?.toLowerCase() === RESTORE_OWNER_EMAIL
+}
+
+export function canCreateBackups(profile) {
+  return profile?.role === 'superadmin'
 }
 
 function refPath(path) {
@@ -61,46 +65,62 @@ async function rotateBackups() {
 }
 
 export async function createBackup(profile, type = 'manual') {
-  const [pieces, occurrences, users, logs] = await Promise.all([
-    readPath('pecas'),
-    readPath('ocorrencias'),
-    readPath('admins'),
-    readPath('logs'),
-  ])
+  const pieces = await readPath('pecas')
 
   const newBackupRef = push(backupsRef())
   const backup = {
     createdAt: Date.now(),
     createdBy: profile?.uid || '',
     createdByName: profile?.nome || profile?.email || 'Sistema',
-    version: '1.0.0',
+    version: '1.1.0',
     type,
     collections: COLLECTIONS,
     counts: {
       pieces: Object.keys(pieces).length,
-      occurrences: Object.keys(occurrences).length,
-      users: Object.keys(users).length,
-      logs: Object.keys(logs).length,
     },
     data: {
       pieces,
-      occurrences,
-      users,
-      logs,
     },
   }
 
   await withTimeout(set(newBackupRef, backup), 'Não foi possível criar backup.', 12000)
   await rotateBackups()
-  await createAuditLog(profile, {
-    action: 'BACKUP',
-    entity: 'backup',
-    entityId: newBackupRef.key,
-    description: `Backup ${type} criado.`,
-    after: backup.counts,
-  })
+  try {
+    await createAuditLog(profile, {
+      action: 'BACKUP',
+      entity: 'backup',
+      entityId: newBackupRef.key,
+      description: `Backup ${type} criado.`,
+      after: backup.counts,
+    })
+  } catch {
+    // O backup não deve falhar se o registro de auditoria for recusado.
+  }
 
   return { id: newBackupRef.key, ...backup }
+}
+
+export async function ensureAutomaticBackup(profile) {
+  if (!canCreateBackups(profile)) return null
+
+  const today = new Date()
+  const day = today.getDate()
+  const cycleDay = day >= 15 ? 15 : 1
+  const cycleKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(cycleDay).padStart(2, '0')}`
+  const backups = objectToArray(await readPath('backups'))
+  const alreadyCreated = backups.some(
+    (backup) => backup.type === 'automatic' && backup.cycleKey === cycleKey,
+  )
+
+  if (alreadyCreated) return null
+
+  const backup = await createBackup(profile, 'automatic')
+  await set(backupsRef(backup.id), {
+    ...backup,
+    cycleKey,
+  })
+  await rotateBackups()
+  return { ...backup, cycleKey }
 }
 
 export function downloadBackupJson(backup) {
@@ -129,23 +149,22 @@ export async function restoreBackup(profile, backup) {
 
   const data = backup.data || {}
   await withTimeout(
-    Promise.all([
-      set(refPath('pecas'), data.pieces || {}),
-      set(refPath('ocorrencias'), data.occurrences || {}),
-      set(refPath('admins'), data.users || {}),
-      set(refPath('logs'), data.logs || {}),
-    ]),
+    set(refPath('pecas'), data.pieces || {}),
     'Não foi possível restaurar backup.',
     15000,
   )
 
-  await createAuditLog(profile, {
-    action: 'RESTORE',
-    entity: 'backup',
-    entityId: backup.id,
-    description: 'Backup restaurado. Um backup pre_restore foi criado antes da restauracao.',
-    after: backup.counts,
-  })
+  try {
+    await createAuditLog(profile, {
+      action: 'RESTORE',
+      entity: 'backup',
+      entityId: backup.id,
+      description: 'Backup restaurado. Um backup pre_restore foi criado antes da restauração.',
+      after: backup.counts,
+    })
+  } catch {
+    // A restauração já foi concluída; falha de log não deve virar erro visual.
+  }
 }
 
 
