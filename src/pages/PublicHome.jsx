@@ -1,6 +1,7 @@
 ﻿import { motion } from 'framer-motion'
-import { CheckCircle2, Factory, Package, ScanLine, TriangleAlert } from 'lucide-react'
+import { CheckCircle2, Factory, Package, TriangleAlert } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import senaiMoldStockLogo from '../assets/SENAI_MoldStock.png'
 import FiltersBar from '../components/FiltersBar.jsx'
 import PageHeader from '../components/PageHeader.jsx'
 import PieceCard from '../components/PieceCard.jsx'
@@ -69,22 +70,16 @@ export default function PublicHome() {
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
-        eyebrow="Industria 4.0 · SENAI"
+        eyebrow="Indústria 4.0 · SENAI"
         title="Controle inteligente de moldes"
         description="Um catálogo operacional para localizar, auditar e acompanhar o estado dos moldes e peças do setor de Plásticos com precisão."
         action={
           <div className="hidden w-72 rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-soft lg:block">
-            <div className="flex items-center gap-3">
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-senai-blue/10 text-senai-blue">
-                <ScanLine className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-950">QR público</p>
-                <p className="text-xs leading-5 text-slate-500">
-                  Escaneie a peça e abra a ficha técnica em segundos.
-                </p>
-              </div>
-            </div>
+            <img
+              src={senaiMoldStockLogo}
+              alt="SENAI MoldStock"
+              className="mx-auto h-16 w-auto object-contain"
+            />
           </div>
         }
       >
@@ -104,27 +99,27 @@ export default function PublicHome() {
           icon={Package}
           label="Total de moldes"
           value={stats.total}
-          description="Itens mapeados no catálogo operacional."
+          description="Base cadastrada no estoque."
         />
         <StatsCard
           icon={CheckCircle2}
           label="Disponíveis"
           value={stats.ok}
-          description="Moldes liberados para uso em aula."
+          description="Prontos para utilização."
           tone="ok"
         />
         <StatsCard
           icon={Factory}
           label="Em manutenção"
           value={stats.maintenance}
-          description="Itens em análise, ajuste ou reparo."
+          description="Aguardando reparo ou inspeção."
           tone="maintenance"
         />
         <StatsCard
           icon={TriangleAlert}
           label="Quebrados"
           value={stats.broken}
-          description="Peças indisponíveis por dano registrado."
+          description="Bloqueados para uso."
           tone="broken"
         />
       </section>

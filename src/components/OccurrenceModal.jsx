@@ -1,6 +1,7 @@
-﻿import { Siren } from 'lucide-react'
+import { Siren } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/useAuth.js'
+import { formatDate } from '../lib/utils.js'
 import { createOccurrence } from '../services/occurrenceService.js'
 import { updatePieceStatus } from '../services/pieceService.js'
 import { Button } from './ui/button.jsx'
@@ -45,6 +46,7 @@ export default function OccurrenceModal({ piece, mode = 'occurrence', onClose })
       if (isStatusMode) {
         await updatePieceStatus(piece.id, form.statusNovo, profile, piece)
       }
+
       await createOccurrence(
         {
           pecaId: piece.id,
@@ -66,15 +68,15 @@ export default function OccurrenceModal({ piece, mode = 'occurrence', onClose })
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-senai-red/10 text-senai-red">
+          <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-senai-orange/10 text-senai-orange">
             <Siren className="h-6 w-6" />
           </div>
           <DialogTitle>
-            {isStatusMode ? 'Justificativa de status' : 'Registrar ocorrência'}
+            {isStatusMode ? 'Alteração de status' : 'Registrar ocorrência'}
           </DialogTitle>
           <DialogDescription>
             {isStatusMode
-              ? `Informe o motivo da alteração da peça ${piece.nome}.`
+              ? `Informe a descrição do problema relacionado ao molde ${piece.nome}.`
               : `Crie um registro operacional para ${piece.nome}.`}
           </DialogDescription>
         </DialogHeader>
@@ -108,8 +110,20 @@ export default function OccurrenceModal({ piece, mode = 'occurrence', onClose })
             </label>
           )}
 
+          {isStatusMode && (
+            <div className="grid gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+              <div>
+                <strong className="text-slate-900">Professor:</strong>{' '}
+                {profile?.nome || profile?.name || profile?.email || 'Não informado'}
+              </div>
+              <div>
+                <strong className="text-slate-900">Data:</strong> {formatDate(Date.now())}
+              </div>
+            </div>
+          )}
+
           <label className="grid gap-2 text-sm font-semibold text-slate-700">
-            Aluno envolvido
+            Pessoa envolvida
             <Input
               value={form.alunoEnvolvido}
               onChange={(event) => setForm({ ...form, alunoEnvolvido: event.target.value })}
@@ -125,7 +139,7 @@ export default function OccurrenceModal({ piece, mode = 'occurrence', onClose })
               onChange={(event) => setForm({ ...form, descricao: event.target.value })}
               placeholder={
                 isStatusMode
-                  ? `Informe o motivo da alteração para ${form.statusNovo}.`
+                  ? `Descreva o problema ou motivo da alteração para ${form.statusNovo}.`
                   : 'Descreva a ocorrência registrada.'
               }
             />
@@ -144,5 +158,3 @@ export default function OccurrenceModal({ piece, mode = 'occurrence', onClose })
     </Dialog>
   )
 }
-
-

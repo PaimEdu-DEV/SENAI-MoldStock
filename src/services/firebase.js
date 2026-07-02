@@ -40,7 +40,7 @@ export const storage = app ? getStorage(app) : null
 
 export function requireFirebase() {
   if (!isFirebaseConfigured || !app || !auth || !db || !storage) {
-    throw new Error('Firebase ainda nao configurado. Preencha o arquivo .env e reinicie o Vite.')
+    throw new Error('Firebase ainda não configurado. Preencha o arquivo .env e reinicie o Vite.')
   }
 }
 

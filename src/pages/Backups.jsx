@@ -5,6 +5,14 @@ import PageHeader from '../components/PageHeader.jsx'
 import { Badge } from '../components/ui/badge.jsx'
 import { Button } from '../components/ui/button.jsx'
 import { Card } from '../components/ui/card.jsx'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '../components/ui/dialog.jsx'
+import { Input } from '../components/ui/input.jsx'
 import { useAuth } from '../contexts/useAuth.js'
 import { formatDate } from '../lib/utils.js'
 import {
@@ -21,6 +29,8 @@ export default function Backups() {
   const [backups, setBackups] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState('')
+  const [restoreTarget, setRestoreTarget] = useState(null)
+  const [restoreForm, setRestoreForm] = useState({ confirmation: '', password: '' })
   const canRestore = canRestoreBackups(profile)
 
   useEffect(() => watchBackups(setBackups, (err) => setError(err.message)), [])
@@ -37,18 +47,22 @@ export default function Backups() {
     }
   }
 
-  async function handleRestore(backup) {
-    const confirmation = window.prompt(
-      'Esta acao pode substituir dados atuais do sistema. Digite RESTAURAR para continuar.',
-    )
-    if (confirmation !== 'RESTAURAR') return
-    const password = window.prompt('Confirme sua senha de Super Admin para restaurar.')
-    if (!password) return
-    setLoading(backup.id)
+  function openRestoreDialog(backup) {
+    setError('')
+    setRestoreTarget(backup)
+    setRestoreForm({ confirmation: '', password: '' })
+  }
+
+  async function handleRestore(event) {
+    event.preventDefault()
+    if (!restoreTarget || restoreForm.confirmation !== 'RESTAURAR') return
+    setLoading(restoreTarget.id)
     setError('')
     try {
-      await reauthenticateCurrentUser(password)
-      await restoreBackup(profile, backup)
+      await reauthenticateCurrentUser(restoreForm.password)
+      await restoreBackup(profile, restoreTarget)
+      setRestoreTarget(null)
+      setRestoreForm({ confirmation: '', password: '' })
     } catch (err) {
       setError(err.message)
     } finally {
@@ -59,7 +73,7 @@ export default function Backups() {
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
-        eyebrow="Administrador"
+        eyebrow="Super Admin"
         title="Backups internos"
         description="Crie, exporte e restaure snapshots do banco. O sistema mantém somente os dois backups mais recentes."
         action={
@@ -76,8 +90,8 @@ export default function Backups() {
           <div>
             <h2 className="font-semibold text-amber-950">Restauração exige cuidado</h2>
             <p className="mt-1 text-sm leading-6 text-amber-800">
-              Antes de restaurar, o MoldStock cria um backup pre_restore. Imagens nao sao
-              duplicadas: o backup guarda apenas as URLs/base64 usadas pelas pecas.
+              Antes de restaurar, o MoldStock cria um backup pre_restore. Imagens não são
+              duplicadas: o backup guarda apenas as URLs/base64 usadas pelas peças.
             </p>
           </div>
         </div>
@@ -109,9 +123,9 @@ export default function Backups() {
                     </strong>
                   </div>
                   <p className="mt-2 text-sm text-slate-500">
-                    Criado por {backup.createdByName || 'Sistema'} - Pecas:{' '}
-                    {backup.counts?.pieces || 0} - Ocorrencias:{' '}
-                    {backup.counts?.occurrences || 0} - Usuarios:{' '}
+                    Criado por {backup.createdByName || 'Sistema'} - Peças:{' '}
+                    {backup.counts?.pieces || 0} - Ocorrências:{' '}
+                    {backup.counts?.occurrences || 0} - Usuários:{' '}
                     {backup.counts?.users || 0} - Logs: {backup.counts?.logs || 0}
                   </p>
                 </div>
@@ -126,7 +140,7 @@ export default function Backups() {
                   </Button>
                   <Button
                     type="button"
-                    onClick={() => handleRestore(backup)}
+                    onClick={() => openRestoreDialog(backup)}
                     disabled={Boolean(loading) || !canRestore}
                     title={!canRestore ? 'Somente epaim@dev.com.br pode restaurar por enquanto.' : undefined}
                   >
@@ -153,6 +167,58 @@ export default function Backups() {
           </Card>
         )}
       </section>
+
+      <Dialog open={Boolean(restoreTarget)} onOpenChange={(open) => !open && setRestoreTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-amber-100 text-amber-700">
+              <ShieldAlert className="h-6 w-6" />
+            </div>
+            <DialogTitle>Confirmar restauração</DialogTitle>
+            <DialogDescription>
+              Esta ação pode substituir dados atuais do sistema. Digite RESTAURAR e confirme
+              sua senha para continuar.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form className="grid gap-4" onSubmit={handleRestore}>
+            <label className="grid gap-2 text-sm font-semibold text-slate-700">
+              Confirmação
+              <Input
+                required
+                value={restoreForm.confirmation}
+                onChange={(event) =>
+                  setRestoreForm({ ...restoreForm, confirmation: event.target.value })
+                }
+                placeholder="Digite RESTAURAR"
+              />
+            </label>
+            <label className="grid gap-2 text-sm font-semibold text-slate-700">
+              Sua senha
+              <Input
+                type="password"
+                required
+                value={restoreForm.password}
+                onChange={(event) =>
+                  setRestoreForm({ ...restoreForm, password: event.target.value })
+                }
+              />
+            </label>
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <Button type="button" variant="secondary" onClick={() => setRestoreTarget(null)}>
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={Boolean(loading) || restoreForm.confirmation !== 'RESTAURAR'}
+              >
+                <RotateCcw className="h-4 w-4" />
+                {loading === restoreTarget?.id ? 'Restaurando...' : 'Restaurar backup'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

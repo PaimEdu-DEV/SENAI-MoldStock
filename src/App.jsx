@@ -1,4 +1,5 @@
 ﻿import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import BrowserGuard from './components/BrowserGuard.jsx'
 import FirebaseSetupNotice from './components/FirebaseSetupNotice.jsx'
 import Navbar from './components/Navbar.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
@@ -96,6 +97,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <BrowserGuard />
         <Navbar />
         <main className="app-shell">
           <AppRoutes />

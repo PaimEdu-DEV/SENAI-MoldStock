@@ -77,9 +77,9 @@ export default function QRCodeModal({ piece, onClose }) {
           <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-senai-blue/10 text-senai-blue">
             <QrCode className="h-6 w-6" />
           </div>
-          <DialogTitle>QR Code da peca</DialogTitle>
+          <DialogTitle>QR Code da peça</DialogTitle>
           <DialogDescription>
-            Este codigo aponta para a pagina publica de {piece.nome}.
+            Este código aponta para a página pública de {piece.nome}.
           </DialogDescription>
         </DialogHeader>
 
@@ -88,7 +88,7 @@ export default function QRCodeModal({ piece, onClose }) {
             {qrImage ? (
               <img
                 src={qrImage}
-                alt={`QR Code da peca ${piece.nome}`}
+                alt={`QR Code da peça ${piece.nome}`}
                 className="h-full w-full max-h-80 max-w-80"
               />
             ) : (

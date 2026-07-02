@@ -258,7 +258,7 @@ export async function updateProfessor(uid, data, actingProfile, before = null) {
   if (Object.hasOwn(data, 'role') && before?.role !== data.role) {
     const name = before?.nome || before?.name || before?.email || 'Professor'
     if (data.role === 'superadmin') {
-      description = `${name} promovido a administrador.`
+      description = `${name} promovido a Super Admin.`
     } else {
       description = `${name} rebaixado para professor.`
     }

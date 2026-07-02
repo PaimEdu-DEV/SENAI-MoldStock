@@ -17,7 +17,7 @@ export default function PieceCard({ piece }) {
       <Card className="overflow-hidden">
         <div className="aspect-[4/3] bg-slate-100">
           <PieceImage
-            src={piece.fotoPecaUrl}
+            src={piece.fotoMoldeUrl || piece.fotoPecaUrl}
             alt={piece.nome}
             className="h-full w-full object-cover"
           />
@@ -33,7 +33,7 @@ export default function PieceCard({ piece }) {
             <StatusBadge status={piece.status} />
           </div>
           <p className="line-clamp-2 text-sm leading-6 text-slate-500">
-            {piece.observacao || piece.descricao || 'Sem observacao registrada.'}
+            {piece.descricao || 'Sem descrição registrada.'}
           </p>
           <Button asChild variant="secondary" className="w-full">
             <Link to={`/peca/${piece.id}`}>

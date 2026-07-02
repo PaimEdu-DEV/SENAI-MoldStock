@@ -77,7 +77,7 @@ export default function PieceTable({
           <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-slate-100 text-slate-400">
             <Package className="h-6 w-6" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-950">Nenhuma peca encontrada</h3>
+          <h3 className="text-lg font-semibold text-slate-950">Nenhuma peça encontrada</h3>
           <p className="mt-1 text-sm text-slate-500">
             Ajuste os filtros ou cadastre um novo molde no painel administrativo.
           </p>
@@ -93,14 +93,12 @@ export default function PieceTable({
           <table className="w-full min-w-[1120px] border-collapse">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/70 text-left text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
-                <th className="px-5 py-4">Peca</th>
-                <th className="px-5 py-4">Categoria</th>
+                <th className="px-5 py-4">Molde</th>
                 <th className="px-5 py-4">Status</th>
-                <th className="px-5 py-4">Observacao</th>
-                <th className="px-5 py-4">Localizacao</th>
-                <th className="px-5 py-4">Qtd.</th>
-                <th className="px-5 py-4">Atualizacao</th>
-                {admin && <th className="px-5 py-4 text-right">Acoes</th>}
+                <th className="px-5 py-4">Localização</th>
+                <th className="px-5 py-4">N° Cav.</th>
+                <th className="px-5 py-4">Atualização</th>
+                {admin && <th className="px-5 py-4 text-right">Ações</th>}
               </tr>
             </thead>
             <tbody>
@@ -125,38 +123,30 @@ export default function PieceTable({
                     <div className="flex items-center gap-4">
                       <div className="h-14 w-14 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
                         <PieceImage
-                          src={piece.fotoPecaUrl}
+                          src={piece.fotoMoldeUrl || piece.fotoPecaUrl}
                           alt={piece.nome}
                           className="h-full w-full object-cover"
                           placeholderClassName="[&>div>span]:hidden [&>div>div]:h-9 [&>div>div]:w-9 [&_svg]:h-4 [&_svg]:w-4"
                         />
                       </div>
                       <div>
+                        <div className="mt-1 font-semibold text-slate-950">{piece.nome}</div>
                         <div className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-senai-blue">
                           {piece.codigo}
                         </div>
-                        <div className="mt-1 font-semibold text-slate-950">{piece.nome}</div>
                         <div className="mt-0.5 text-xs font-medium text-slate-400">
-                          Clique para abrir a ficha completa
+                          {piece.descricao || 'Clique para abrir a ficha completa'}
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-5 py-4 text-sm font-medium text-slate-600">
-                    {piece.categoria || 'Sem categoria'}
-                  </td>
                   <td className="px-5 py-4">
                     <StatusBadge status={piece.status} />
-                  </td>
-                  <td className="max-w-[280px] px-5 py-4 text-sm leading-6 text-slate-500">
-                    <span className="line-clamp-2">
-                      {piece.observacao || 'Sem observacao registrada'}
-                    </span>
                   </td>
                   <td className="px-5 py-4">
                     <div className="inline-flex items-center gap-2 text-sm font-medium text-slate-600">
                       <MapPin className="h-4 w-4 text-slate-400" />
-                      {piece.localizacao || 'Nao informada'}
+                      {piece.localizacao || 'Não informada'}
                     </div>
                   </td>
                   <td className="px-5 py-4 text-sm font-semibold text-slate-800">
@@ -187,7 +177,7 @@ export default function PieceTable({
                           <QrCode className="h-4 w-4" />
                         </ActionButton>
                         <ActionButton
-                          label="Registrar ocorrencia"
+                          label="Registrar ocorrência"
                           onClick={() => onOccurrence(piece)}
                         >
                           <Siren className="h-4 w-4" />

@@ -35,7 +35,7 @@ function Timeline({ occurrences }) {
   if (!occurrences.length) {
     return (
       <p className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">
-        Nenhuma ocorrencia registrada para esta peca.
+        Nenhuma ocorrência registrada para esta peça.
       </p>
     )
   }
@@ -59,7 +59,7 @@ function Timeline({ occurrences }) {
           <div className="mt-4 grid gap-2 text-xs font-medium text-slate-500 sm:grid-cols-2">
             <span>Professor: {occurrence.registradoPor || 'Nao informado'}</span>
             {occurrence.alunoEnvolvido && (
-              <span>Aluno envolvido: {occurrence.alunoEnvolvido}</span>
+              <span>Pessoa envolvida: {occurrence.alunoEnvolvido}</span>
             )}
             {occurrence.statusNovo && (
               <span>
@@ -121,7 +121,7 @@ export default function PieceDetails() {
   if (!piece) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-8">
-        <Card className="p-8 text-center">Peca nao encontrada.</Card>
+        <Card className="p-8 text-center">Peça não encontrada.</Card>
       </div>
     )
   }
@@ -139,7 +139,7 @@ export default function PieceDetails() {
               />
               <div className="border-t border-slate-200 bg-white/80 px-4 py-3">
                 <span className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
-                  Foto da peca
+                  Foto da peça
                 </span>
               </div>
             </div>
@@ -172,7 +172,7 @@ export default function PieceDetails() {
               <StatusBadge status={piece.status} />
             </div>
             <p className="mt-5 leading-7 text-slate-500">
-              {piece.descricao || piece.observacao || 'Sem descricao cadastrada.'}
+              {piece.descricao || piece.observacao || 'Sem descrição cadastrada.'}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               {isAdmin && (
@@ -185,7 +185,7 @@ export default function PieceDetails() {
                     QR Code
                   </Button>
                   <Button onClick={() => setOccurrenceOpen(true)}>
-                    Registrar ocorrencia
+                    Registrar ocorrência
                   </Button>
                 </>
               )}
@@ -193,10 +193,10 @@ export default function PieceDetails() {
           </Card>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <InfoItem icon={PackageSearch} label="Categoria" value={piece.categoria || 'Nao informada'} />
-            <InfoItem icon={MapPin} label="Localizacao" value={piece.localizacao || 'Nao informada'} />
-            <InfoItem icon={PackageSearch} label="Quantidade" value={piece.quantidade || 1} />
-            <InfoItem icon={UserRound} label="Responsavel" value={piece.criadoPor || 'Nao informado'} />
+            <InfoItem icon={PackageSearch} label="Categoria" value={piece.categoria || 'Não informada'} />
+            <InfoItem icon={MapPin} label="Localização" value={piece.localizacao || 'Não informada'} />
+            <InfoItem icon={PackageSearch} label="N° Cav." value={piece.quantidade || 1} />
+            <InfoItem icon={UserRound} label="Responsável" value={piece.criadoPor || 'Não informado'} />
             <InfoItem icon={CalendarClock} label="Cadastro" value={formatDate(piece.criadoEm)} />
             <InfoItem icon={CalendarClock} label="Atualizacao" value={formatDate(piece.atualizadoEm)} />
           </div>
@@ -206,10 +206,10 @@ export default function PieceDetails() {
       <Card className="p-6">
         <div className="mb-6">
           <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
-            Observacoes
+            Observações
           </h2>
           <p className="mt-2 text-slate-500">
-            {piece.observacao || 'Nenhuma observacao resumida cadastrada.'}
+            {piece.observacao || 'Nenhuma observação resumida cadastrada.'}
           </p>
         </div>
       </Card>
@@ -218,10 +218,10 @@ export default function PieceDetails() {
         <Card className="p-6">
           <div className="mb-6">
             <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
-              Timeline de ocorrencias
+              Timeline de ocorrências
             </h2>
             <p className="mt-2 text-sm text-slate-500">
-              Historico operacional visivel apenas para professores.
+              Histórico operacional visível apenas para professores.
             </p>
           </div>
           <Timeline occurrences={occurrences} />

@@ -68,7 +68,7 @@ export default function Navbar() {
               MoldStock
             </strong>
             <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-senai-red">
-              Plasticos
+              Plásticos
             </span>
           </div>
         </NavLink>

@@ -74,7 +74,7 @@ export default function AdminDashboard() {
       return
     }
 
-    const confirmed = window.confirm(`Excluir a peca ${piece.nome}?`)
+    const confirmed = window.confirm(`Excluir a peça ${piece.nome}?`)
     if (confirmed) await deletePiece(piece.id, profile, piece)
   }
 

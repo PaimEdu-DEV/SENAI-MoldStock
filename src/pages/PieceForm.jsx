@@ -28,13 +28,13 @@ const statusOptions = [
   {
     value: 'OK',
     label: 'OK',
-    hint: 'Disponivel para uso',
+    hint: 'Disponível para uso',
     className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
   },
   {
     value: 'Em manutenção',
-    label: 'Manutencao',
-    hint: 'Em reparo ou inspecao',
+    label: 'Manutenção',
+    hint: 'Em reparo ou inspeção',
     className: 'border-amber-200 bg-amber-50 text-amber-700',
   },
   {
@@ -129,7 +129,7 @@ export default function PieceForm() {
           'Salvar demorou demais. Confira as regras do banco.',
           15000,
         )
-        if (form.status !== previousStatus && form.status !== 'OK') {
+        if (form.status !== previousStatus) {
           setSavedPieceForStatus({
             id,
             nome: form.nome,
@@ -143,14 +143,14 @@ export default function PieceForm() {
       } else {
         const created = await withTimeout(
           createPiece(form, files, profile),
-          'Criar peca demorou demais. Confira as regras do banco.',
+          'Criar peça demorou demais. Confira as regras do banco.',
           15000,
         )
         setCreatedQrPiece({ id: created.id, codigo: form.codigo, nome: form.nome })
         if (created.imageError) {
-          setNotice(`Peca salva e QR gerado. As imagens nao subiram: ${created.imageError}`)
+          setNotice(`Peça salva e QR gerado. As imagens não subiram: ${created.imageError}`)
         } else {
-          setNotice('Peca salva com sucesso. QR Code gerado.')
+          setNotice('Peça salva com sucesso. QR Code gerado.')
         }
       }
     } catch (err) {
@@ -174,9 +174,9 @@ export default function PieceForm() {
   return (
     <div className="mx-auto grid w-full max-w-5xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
-        eyebrow={isEditing ? 'Editar cadastro' : 'Nova peca'}
-        title={isEditing ? form.nome || 'Editar peca' : 'Cadastrar molde ou peca'}
-        description="Organize dados tecnicos, localizacao, status operacional e imagens em uma ficha pronta para QR Code."
+        eyebrow={isEditing ? 'Editar cadastro' : 'Nova peça'}
+        title={isEditing ? form.nome || 'Editar peça' : 'Cadastrar molde ou peça'}
+        description="Organize dados técnicos, localização, status operacional e imagens em uma ficha pronta para QR Code."
       />
 
       <motion.form
@@ -187,7 +187,7 @@ export default function PieceForm() {
       >
         <Card className="grid gap-5 p-6">
           <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Codigo">
+            <Field label="Código">
               <Input
                 required
                 value={form.codigo}
@@ -200,7 +200,7 @@ export default function PieceForm() {
                 required
                 value={form.nome}
                 onChange={(event) => setForm({ ...form, nome: event.target.value })}
-                placeholder="Nome tecnico da peca"
+                placeholder="Nome técnico da peça"
               />
             </Field>
           </div>
@@ -213,14 +213,14 @@ export default function PieceForm() {
                 placeholder="Molde, componente..."
               />
             </Field>
-            <Field label="Localizacao">
+            <Field label="Localização">
               <Input
                 value={form.localizacao}
                 onChange={(event) => setForm({ ...form, localizacao: event.target.value })}
-                placeholder="Armario 2, prateleira B"
+                placeholder="Armário 2, prateleira B"
               />
             </Field>
-            <Field label="Quantidade">
+            <Field label="N° Cav.">
               <Input
                 type="number"
                 min="1"
@@ -253,19 +253,19 @@ export default function PieceForm() {
             </div>
           </Field>
 
-          <Field label="Observacao resumida">
+          <Field label="Observação resumida">
             <Input
               value={form.observacao}
               onChange={(event) => setForm({ ...form, observacao: event.target.value })}
-              placeholder="Resumo visivel na listagem"
+              placeholder="Resumo visível na ficha completa"
             />
           </Field>
 
-          <Field label="Descricao completa">
+          <Field label="Descrição completa">
             <Textarea
               value={form.descricao}
               onChange={(event) => setForm({ ...form, descricao: event.target.value })}
-              placeholder="Descreva uso, condicoes, cuidados e detalhes tecnicos."
+              placeholder="Descreva uso, condições, cuidados e detalhes técnicos."
             />
           </Field>
         </Card>
@@ -274,12 +274,12 @@ export default function PieceForm() {
           <div>
             <h2 className="text-lg font-semibold text-slate-950">Imagens</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Adicione fotos limpas da peca e do molde para facilitar a identificacao.
+              Adicione fotos limpas da peça e do molde para facilitar a identificação.
             </p>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <UploadField
-              label="Foto da peca"
+              label="Foto da peça"
               currentUrl={
                 files.fotoPeca
                   ? URL.createObjectURL(files.fotoPeca)
@@ -316,7 +316,7 @@ export default function PieceForm() {
           </Button>
           <Button type="submit" disabled={saving}>
             {isEditing ? <Save className="h-4 w-4" /> : <QrCode className="h-4 w-4" />}
-            {saving ? 'Salvando...' : isEditing ? 'Salvar alteracoes' : 'Salvar e gerar QR'}
+            {saving ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Salvar e gerar QR'}
           </Button>
         </div>
       </motion.form>

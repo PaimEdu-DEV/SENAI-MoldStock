@@ -41,7 +41,7 @@ export async function createOccurrence(data, userProfile) {
     action: 'CREATE',
     entity: 'occurrence',
     entityId: newOccurrenceRef.key,
-    description: `Ocorrencia registrada: ${data.tipo}.`,
+    description: `Ocorrência registrada: ${data.tipo}.`,
     after: data,
   })
 }

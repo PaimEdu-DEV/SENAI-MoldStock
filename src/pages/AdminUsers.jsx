@@ -106,7 +106,7 @@ export default function AdminUsers() {
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
-        eyebrow={profile?.nome || profile?.name || 'Administrador'}
+        eyebrow={profile?.nome || profile?.name || 'Super Admin'}
         title="Gestão de professores"
         description="Controle permissões administrativas, senhas temporárias e acessos docentes com rastreabilidade."
       />
@@ -197,7 +197,7 @@ export default function AdminUsers() {
                     {admin.role === 'superadmin' && (
                       <Badge variant="blue">
                         <Shield className="h-3 w-3" />
-                        Administrador
+                        Super Admin
                       </Badge>
                     )}
                     {admin.mustChangePassword && (
@@ -243,7 +243,7 @@ export default function AdminUsers() {
                   onChange={(event) => handleRoleChange(admin, event.target.value)}
                 >
                   <option value="admin">Admin</option>
-                  <option value="superadmin">Administrador</option>
+                  <option value="superadmin">Super Admin</option>
                 </Select>
                 <div className="flex flex-wrap gap-2">
                   <Button

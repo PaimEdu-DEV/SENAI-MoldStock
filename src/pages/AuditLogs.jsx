@@ -33,7 +33,7 @@ const actions = [
   'PERMISSION_DENIED',
 ]
 
-const entities = ['Todos', 'piece', 'user', 'backup', 'system', 'occurrence', 'qrcode']
+const entities = ['Todos', 'piece', 'user', 'backup', 'system', 'occurrence']
 const auditableActions = new Set(['CREATE', 'UPDATE', 'DELETE', 'BACKUP', 'RESTORE', 'PERMISSION_DENIED'])
 const auditableEntities = new Set(['piece', 'user', 'backup', 'system', 'occurrence'])
 

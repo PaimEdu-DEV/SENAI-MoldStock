@@ -34,7 +34,7 @@ export async function createAuditLog(profile, payload) {
 
   await withTimeout(
     set(newLogRef, log),
-    'Nao foi possivel registrar auditoria.',
+    'Não foi possível registrar auditoria.',
     8000,
   )
   return { id: newLogRef.key, ...log }
@@ -94,20 +94,20 @@ export async function exportLogsPdf(logs, filters, profile) {
   doc.setFontSize(18)
   doc.text('SENAI MoldStock', 14, 16)
   doc.setFontSize(13)
-  doc.text('Relatorio de Auditoria', 14, 25)
+  doc.text('Relatório de Auditoria', 14, 25)
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.text(`Emitido em: ${issuedAt}`, 14, 33)
   doc.text(`Exportado por: ${profile?.nome || profile?.email || 'Sistema'}`, 14, 39)
   doc.text(
-    `Filtros: acao=${filters.action}; entidade=${filters.entity}; usuario=${filters.user}; periodo=${filters.startDate || '-'} ate ${filters.endDate || '-'}`,
+    `Filtros: ação=${filters.action}; entidade=${filters.entity}; usuário=${filters.user}; período=${filters.startDate || '-'} até ${filters.endDate || '-'}`,
     14,
     45,
   )
 
   autoTable(doc, {
     startY: 52,
-    head: [['Data', 'Usuario', 'Role', 'Acao', 'Entidade', 'Descricao']],
+    head: [['Data', 'Usuário', 'Função', 'Ação', 'Entidade', 'Descrição']],
     body: logs.map((log) => [
       new Intl.DateTimeFormat('pt-BR', {
         dateStyle: 'short',
@@ -129,7 +129,7 @@ export async function exportLogsPdf(logs, filters, profile) {
     doc.setPage(index)
     doc.setFontSize(8)
     doc.text(
-      `MoldStock SENAI - Pagina ${index} de ${pageCount}`,
+      `MoldStock SENAI - Página ${index} de ${pageCount}`,
       14,
       doc.internal.pageSize.height - 8,
     )

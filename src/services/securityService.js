@@ -26,7 +26,7 @@ export async function reauthenticateCurrentUser(password) {
   requireFirebase()
   const user = auth.currentUser
   if (!user?.email) {
-    throw new Error('Usuario autenticado nao encontrado.')
+    throw new Error('Usuário autenticado não encontrado.')
   }
 
   const credential = EmailAuthProvider.credential(user.email, password)
@@ -41,7 +41,7 @@ export async function completeFirstAccessPassword({ newPassword, profile }) {
   requireFirebase()
   const user = auth.currentUser
   if (!user?.email) {
-    throw new Error('Usuario autenticado nao encontrado.')
+    throw new Error('Usuário autenticado não encontrado.')
   }
 
   await withTimeout(

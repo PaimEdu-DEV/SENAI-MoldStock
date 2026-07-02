@@ -14,7 +14,7 @@ export default function StatsCard({ icon: Icon, label, value, description, tone 
     <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
       <Card
         className={cn(
-          'relative overflow-hidden bg-gradient-to-br p-5',
+          'relative min-h-[132px] overflow-hidden bg-gradient-to-br p-5',
           tones[tone] || tones.blue,
         )}
       >
