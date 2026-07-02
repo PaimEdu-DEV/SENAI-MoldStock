@@ -3,11 +3,13 @@
   off,
   onValue,
   ref as databaseRef,
+  remove,
   set,
   update,
 } from 'firebase/database'
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
   signInWithEmailAndPassword,
   signOut,
   updatePassword,
@@ -278,15 +280,33 @@ export async function updateProfessor(uid, data, actingProfile, before = null) {
 
 export async function deleteProfessor(uid, actingProfile, before = null) {
   requireFirebase()
-  await update(adminRef(uid), {
-    active: false,
-    updatedAt: Date.now(),
-  })
+
+  const secondary = createSecondaryAuth()
+  let authRemoved = false
+  try {
+    if (before?.email && before?.temporaryPassword) {
+      await signInWithEmailAndPassword(
+        secondary.auth,
+        before.email,
+        before.temporaryPassword,
+      )
+      await deleteUser(secondary.auth.currentUser)
+      authRemoved = true
+    }
+  } catch {
+    authRemoved = false
+  } finally {
+    await secondary.cleanup()
+  }
+
+  await remove(adminRef(uid))
   await createAuditLog(actingProfile, {
     action: 'DELETE',
     entity: 'user',
     entityId: uid,
-    description: `${before?.nome || before?.email || 'Professor'} desativado no painel administrativo.`,
+    description: `${before?.nome || before?.email || 'Professor'} removido do painel administrativo${
+      authRemoved ? ' e da autenticação.' : '.'
+    }`,
     before,
   })
 }
