@@ -21,7 +21,6 @@ const emptyForm = {
   descricao: '',
   localizacao: '',
   quantidade: 1,
-  categoria: '',
 }
 
 const statusOptions = [
@@ -107,7 +106,6 @@ export default function PieceForm() {
         descricao: piece.descricao || '',
         localizacao: piece.localizacao || '',
         quantidade: piece.quantidade || 1,
-        categoria: piece.categoria || '',
       })
       setPreviousStatus(piece.status || 'OK')
       setCurrentImages({
@@ -143,14 +141,14 @@ export default function PieceForm() {
       } else {
         const created = await withTimeout(
           createPiece(form, files, profile),
-          'Criar peça demorou demais. Confira as regras do banco.',
+          'Criar molde demorou demais. Confira as regras do banco.',
           15000,
         )
         setCreatedQrPiece({ id: created.id, codigo: form.codigo, nome: form.nome })
         if (created.imageError) {
-          setNotice(`Peça salva e QR gerado. As imagens não subiram: ${created.imageError}`)
+          setNotice(`Molde salvo e QR gerado. As imagens não subiram: ${created.imageError}`)
         } else {
-          setNotice('Peça salva com sucesso. QR Code gerado.')
+          setNotice('Molde salvo com sucesso. QR Code gerado.')
         }
       }
     } catch (err) {
@@ -174,8 +172,8 @@ export default function PieceForm() {
   return (
     <div className="mx-auto grid w-full max-w-5xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
-        eyebrow={isEditing ? 'Editar cadastro' : 'Nova peça'}
-        title={isEditing ? form.nome || 'Editar peça' : 'Cadastrar molde ou peça'}
+        eyebrow={isEditing ? 'Editar cadastro' : 'Novo molde'}
+        title={isEditing ? form.nome || 'Editar molde' : 'Cadastrar molde'}
         description="Organize dados técnicos, localização, status operacional e imagens em uma ficha pronta para QR Code."
       />
 
@@ -200,19 +198,12 @@ export default function PieceForm() {
                 required
                 value={form.nome}
                 onChange={(event) => setForm({ ...form, nome: event.target.value })}
-                placeholder="Nome técnico da peça"
+                placeholder="Nome técnico do molde"
               />
             </Field>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <Field label="Categoria">
-              <Input
-                value={form.categoria}
-                onChange={(event) => setForm({ ...form, categoria: event.target.value })}
-                placeholder="Molde, componente..."
-              />
-            </Field>
+          <div className="grid gap-4 md:grid-cols-2">
             <Field label="Localização">
               <Input
                 value={form.localizacao}
@@ -253,7 +244,7 @@ export default function PieceForm() {
             </div>
           </Field>
 
-          <Field label="Observação resumida">
+          <Field label="Observação resumida (Opcional)">
             <Input
               value={form.observacao}
               onChange={(event) => setForm({ ...form, observacao: event.target.value })}

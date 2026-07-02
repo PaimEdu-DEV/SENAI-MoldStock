@@ -90,7 +90,7 @@ export async function createBackup(profile, type = 'manual') {
     },
   }
 
-  await withTimeout(set(newBackupRef, backup), 'Nao foi possivel criar backup.', 12000)
+  await withTimeout(set(newBackupRef, backup), 'Não foi possível criar backup.', 12000)
   await rotateBackups()
   await createAuditLog(profile, {
     action: 'BACKUP',
@@ -135,7 +135,7 @@ export async function restoreBackup(profile, backup) {
       set(refPath('admins'), data.users || {}),
       set(refPath('logs'), data.logs || {}),
     ]),
-    'Nao foi possivel restaurar backup.',
+    'Não foi possível restaurar backup.',
     15000,
   )
 

@@ -21,6 +21,10 @@ import { withTimeout } from './timeout.js'
 const BOOTSTRAP_SUPERADMIN_EMAIL = 'epaim@dev.com.br'
 const BOOTSTRAP_SUPERADMIN_PASSWORD = '1234567'
 
+export function isRootSuperAdmin(profile) {
+  return profile?.email?.toLowerCase() === BOOTSTRAP_SUPERADMIN_EMAIL
+}
+
 function adminRef(uid = '') {
   requireFirebase()
   return databaseRef(db, uid ? `admins/${uid}` : 'admins')
@@ -41,7 +45,7 @@ async function createBootstrapSuperAdmin(email, password) {
     email.toLowerCase() !== BOOTSTRAP_SUPERADMIN_EMAIL ||
     password !== BOOTSTRAP_SUPERADMIN_PASSWORD
   ) {
-    throw new Error('Credenciais invalidas.')
+    throw new Error('Credenciais inválidas.')
   }
 
   let credential
@@ -252,6 +256,15 @@ export function watchAdmins(callback, onError) {
 
 export async function updateProfessor(uid, data, actingProfile, before = null) {
   requireFirebase()
+  if (isRootSuperAdmin(before) && !isRootSuperAdmin(actingProfile)) {
+    throw new Error('O Super Admin principal não pode ter permissões ou acesso alterados.')
+  }
+  if (isRootSuperAdmin(before) && (data.role && data.role !== 'superadmin')) {
+    throw new Error('O Super Admin principal não pode ser rebaixado.')
+  }
+  if (isRootSuperAdmin(before) && data.active === false) {
+    throw new Error('O Super Admin principal não pode ser desativado.')
+  }
   await update(adminRef(uid), {
     ...data,
     updatedAt: Date.now(),
@@ -280,6 +293,10 @@ export async function updateProfessor(uid, data, actingProfile, before = null) {
 
 export async function deleteProfessor(uid, actingProfile, before = null) {
   requireFirebase()
+
+  if (isRootSuperAdmin(before)) {
+    throw new Error('O Super Admin principal não pode ser removido.')
+  }
 
   const secondary = createSecondaryAuth()
   let authRemoved = false

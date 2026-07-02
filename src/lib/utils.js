@@ -6,7 +6,7 @@ export function cn(...inputs) {
 }
 
 export function formatDate(value) {
-  if (!value) return 'Nao informado'
+  if (!value) return 'Não informado'
   const date = value?.toDate ? value.toDate() : new Date(value)
   return new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'short',

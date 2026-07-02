@@ -49,7 +49,7 @@ export default function QRCodeModal({ piece, onClose }) {
 
     if (format === 'png') {
       link.href = qrImage
-      link.download = `qrcode-peca-${safeCode}.png`
+      link.download = `qrcode-molde-${safeCode}.png`
       link.click()
       return
     }
@@ -64,7 +64,7 @@ export default function QRCodeModal({ piece, onClose }) {
       context.fillRect(0, 0, canvas.width, canvas.height)
       context.drawImage(image, 0, 0)
       link.href = canvas.toDataURL('image/jpeg', 0.95)
-      link.download = `qrcode-peca-${safeCode}.jpg`
+      link.download = `qrcode-molde-${safeCode}.jpg`
       link.click()
     }
     image.src = qrImage
@@ -77,7 +77,7 @@ export default function QRCodeModal({ piece, onClose }) {
           <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-senai-blue/10 text-senai-blue">
             <QrCode className="h-6 w-6" />
           </div>
-          <DialogTitle>QR Code da peça</DialogTitle>
+          <DialogTitle>QR Code do molde</DialogTitle>
           <DialogDescription>
             Este código aponta para a página pública de {piece.nome}.
           </DialogDescription>
@@ -88,7 +88,7 @@ export default function QRCodeModal({ piece, onClose }) {
             {qrImage ? (
               <img
                 src={qrImage}
-                alt={`QR Code da peça ${piece.nome}`}
+                alt={`QR Code do molde ${piece.nome}`}
                 className="h-full w-full max-h-80 max-w-80"
               />
             ) : (

@@ -17,6 +17,7 @@ import { reauthenticateCurrentUser } from '../services/securityService.js'
 import {
   createProfessor,
   deleteProfessor,
+  isRootSuperAdmin,
   updateProfessor,
   watchAdmins,
 } from '../services/userService.js'
@@ -34,8 +35,11 @@ export default function AdminUsers() {
   const [showCreatePassword, setShowCreatePassword] = useState(false)
   const [visibleTemporaryPasswords, setVisibleTemporaryPasswords] = useState({})
   const [roleRequest, setRoleRequest] = useState(null)
+  const [deleteRequest, setDeleteRequest] = useState(null)
   const [adminPassword, setAdminPassword] = useState('')
+  const [deletePassword, setDeletePassword] = useState('')
   const [confirmingRole, setConfirmingRole] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -56,6 +60,10 @@ export default function AdminUsers() {
   }
 
   async function handleRoleChange(admin, role) {
+    if (isRootSuperAdmin(admin) && role !== 'superadmin') {
+      setError('O Super Admin principal não pode ser rebaixado.')
+      return
+    }
     if (admin.uid === user.uid && role !== 'superadmin') {
       setError('Você não pode remover seu próprio perfil de administrador.')
       return
@@ -87,6 +95,10 @@ export default function AdminUsers() {
   }
 
   async function handleActiveChange(admin) {
+    if (isRootSuperAdmin(admin)) {
+      setError('O Super Admin principal não pode ser desativado.')
+      return
+    }
     if (admin.uid === user.uid) {
       setError('Você não pode desativar seu próprio acesso.')
       return
@@ -95,12 +107,33 @@ export default function AdminUsers() {
   }
 
   async function handleDelete(admin) {
+    if (isRootSuperAdmin(admin)) {
+      setError('O Super Admin principal não pode ser removido.')
+      return
+    }
     if (admin.uid === user.uid) {
       setError('Você não pode excluir seu próprio acesso.')
       return
     }
-    const confirmed = window.confirm(`Remover ${admin.nome}?`)
-    if (confirmed) await deleteProfessor(admin.uid, profile, admin)
+    setError('')
+    setDeletePassword('')
+    setDeleteRequest(admin)
+  }
+
+  async function confirmDelete(event) {
+    event.preventDefault()
+    if (!deleteRequest) return
+    setConfirmingDelete(true)
+    try {
+      await reauthenticateCurrentUser(deletePassword)
+      await deleteProfessor(deleteRequest.uid, profile, deleteRequest)
+      setDeleteRequest(null)
+      setDeletePassword('')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setConfirmingDelete(false)
+    }
   }
 
   return (
@@ -200,6 +233,12 @@ export default function AdminUsers() {
                         Super Admin
                       </Badge>
                     )}
+                    {isRootSuperAdmin(admin) && (
+                      <Badge variant="ok">
+                        <ShieldCheck className="h-3 w-3" />
+                        Principal
+                      </Badge>
+                    )}
                     {admin.mustChangePassword && (
                       <Badge variant="maintenance">troca pendente</Badge>
                     )}
@@ -241,6 +280,7 @@ export default function AdminUsers() {
                 <Select
                   value={admin.role}
                   onChange={(event) => handleRoleChange(admin, event.target.value)}
+                  disabled={isRootSuperAdmin(admin)}
                 >
                   <option value="admin">Admin</option>
                   <option value="superadmin">Super Admin</option>
@@ -250,6 +290,7 @@ export default function AdminUsers() {
                     type="button"
                     variant="secondary"
                     onClick={() => handleActiveChange(admin)}
+                    disabled={isRootSuperAdmin(admin)}
                   >
                     {admin.active === false ? 'Ativar' : 'Desativar'}
                   </Button>
@@ -257,6 +298,7 @@ export default function AdminUsers() {
                     type="button"
                     variant="secondary"
                     onClick={() => handleDelete(admin)}
+                    disabled={isRootSuperAdmin(admin)}
                   >
                     Remover
                   </Button>
@@ -298,6 +340,42 @@ export default function AdminUsers() {
               <Button type="submit" disabled={confirmingRole}>
                 <ShieldCheck className="h-4 w-4" />
                 {confirmingRole ? 'Confirmando...' : 'Confirmar'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(deleteRequest)} onOpenChange={(open) => !open && setDeleteRequest(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-rose-100 text-rose-700">
+              <ShieldCheck className="h-6 w-6" />
+            </div>
+            <DialogTitle>Confirmar remoção de professor</DialogTitle>
+            <DialogDescription>
+              Informe sua senha para remover {deleteRequest?.nome || 'este professor'} do painel administrativo.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form className="grid gap-4" onSubmit={confirmDelete}>
+            <label className="grid gap-2 text-sm font-semibold text-slate-700">
+              Sua senha
+              <Input
+                type="password"
+                required
+                value={deletePassword}
+                onChange={(event) => setDeletePassword(event.target.value)}
+                autoFocus
+              />
+            </label>
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <Button type="button" variant="secondary" onClick={() => setDeleteRequest(null)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={confirmingDelete}>
+                <ShieldCheck className="h-4 w-4" />
+                {confirmingDelete ? 'Removendo...' : 'Confirmar remoção'}
               </Button>
             </div>
           </form>

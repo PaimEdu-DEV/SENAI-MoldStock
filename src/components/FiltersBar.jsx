@@ -16,7 +16,7 @@ export default function FiltersBar({ filters, setFilters, showLocation = true })
             className="h-14 rounded-2xl border-slate-100 bg-slate-50 pl-13 text-base shadow-inner shadow-slate-200/30"
             value={filters.search}
             onChange={(event) => setFilters({ ...filters, search: event.target.value })}
-            placeholder="Buscar por código, nome, categoria ou localização"
+            placeholder="Buscar por código, nome ou localização"
           />
         </label>
 

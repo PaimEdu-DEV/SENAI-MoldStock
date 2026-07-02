@@ -97,12 +97,12 @@ export async function createPiece(data, files, userProfile) {
     criadoPor: userProfile?.nome || userProfile?.email || 'Professor',
     criadoEm: now,
     atualizadoEm: now,
-  }), 'Não foi possível salvar a peça no Realtime Database. Confira as regras de escrita.')
+  }), 'Não foi possível salvar o molde no Realtime Database. Confira as regras de escrita.')
   await createAuditLog(userProfile, {
     action: 'CREATE',
     entity: 'piece',
     entityId: newPieceRef.key,
-    description: `Peça ${data.nome} criada.`,
+    description: `Molde ${data.nome} criado.`,
     after: { ...data, codigo: String(data.codigo).trim() },
   })
 
@@ -128,13 +128,13 @@ export async function updatePiece(id, data, files, userProfile, before = null) {
 
   await withTimeout(
     update(piecesRef(id), updates),
-    'Não foi possível atualizar a peça no Realtime Database. Confira as regras de escrita.',
+    'Não foi possível atualizar o molde no Realtime Database. Confira as regras de escrita.',
   )
   await createAuditLog(userProfile, {
     action: 'UPDATE',
     entity: 'piece',
     entityId: id,
-    description: `Peça ${data.nome} atualizada.`,
+    description: `Molde ${data.nome} atualizado.`,
     before,
     after: updates,
   })
@@ -163,7 +163,7 @@ export async function deletePiece(id, userProfile, before = null) {
     action: 'DELETE',
     entity: 'piece',
     entityId: id,
-    description: 'Peça excluída.',
+    description: 'Molde excluído.',
     before,
   })
 }

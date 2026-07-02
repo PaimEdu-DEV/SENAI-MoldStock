@@ -13,7 +13,7 @@ function getResetErrorMessage(error) {
   const code = error?.code || rawMessage
 
   if (code.includes('auth/user-not-found')) {
-    return 'Nao encontramos um professor cadastrado com este e-mail.'
+    return 'Não encontramos um professor cadastrado com este e-mail.'
   }
 
   if (code.includes('auth/invalid-email')) {
@@ -24,7 +24,7 @@ function getResetErrorMessage(error) {
     return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.'
   }
 
-  return 'Nao foi possivel enviar o e-mail agora. Confira o endereco e tente novamente.'
+  return 'Não foi possível enviar o e-mail agora. Confira o endereço e tente novamente.'
 }
 
 export default function ForgotPassword() {

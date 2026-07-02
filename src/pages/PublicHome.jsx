@@ -24,7 +24,6 @@ function applyFilters(pieces, filters) {
     const haystack = [
       piece.codigo,
       piece.nome,
-      piece.categoria,
       piece.localizacao,
     ]
       .join(' ')
@@ -72,7 +71,7 @@ export default function PublicHome() {
       <PageHeader
         eyebrow="Catálogo público · SENAI"
         title="Catálogo público de moldes"
-        description="Visualize, pesquise e acompanhe o estado dos moldes e peças do setor de Plásticos com precisão."
+        description="Visualize, pesquise e acompanhe o estado dos moldes do setor de Plásticos com precisão."
         action={
           <div className="hidden w-[430px] justify-items-center lg:grid">
             <img

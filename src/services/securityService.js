@@ -17,7 +17,7 @@ export async function sendPasswordReset(email) {
       url: `${origin || 'https://senai-mold-stock.vercel.app'}/login`,
       handleCodeInApp: false,
     }),
-    'Nao foi possivel enviar o e-mail de recuperacao.',
+    'Não foi possível enviar o e-mail de recuperação.',
     10000,
   )
 }
@@ -32,7 +32,7 @@ export async function reauthenticateCurrentUser(password) {
   const credential = EmailAuthProvider.credential(user.email, password)
   return withTimeout(
     reauthenticateWithCredential(user, credential),
-    'Nao foi possivel confirmar sua senha atual.',
+    'Não foi possível confirmar sua senha atual.',
     10000,
   )
 }
@@ -46,7 +46,7 @@ export async function completeFirstAccessPassword({ newPassword, profile }) {
 
   await withTimeout(
     updatePassword(user, newPassword),
-    'Nao foi possivel alterar a senha.',
+    'Não foi possível alterar a senha.',
     10000,
   )
   try {

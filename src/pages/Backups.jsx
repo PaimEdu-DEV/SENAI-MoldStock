@@ -91,7 +91,7 @@ export default function Backups() {
             <h2 className="font-semibold text-amber-950">Restauração exige cuidado</h2>
             <p className="mt-1 text-sm leading-6 text-amber-800">
               Antes de restaurar, o MoldStock cria um backup pre_restore. Imagens não são
-              duplicadas: o backup guarda apenas as URLs/base64 usadas pelas peças.
+              duplicadas: o backup guarda apenas as URLs/base64 usadas pelos moldes.
             </p>
           </div>
         </div>
@@ -123,7 +123,7 @@ export default function Backups() {
                     </strong>
                   </div>
                   <p className="mt-2 text-sm text-slate-500">
-                    Criado por {backup.createdByName || 'Sistema'} - Peças:{' '}
+                    Criado por {backup.createdByName || 'Sistema'} - Moldes:{' '}
                     {backup.counts?.pieces || 0} - Ocorrências:{' '}
                     {backup.counts?.occurrences || 0} - Usuários:{' '}
                     {backup.counts?.users || 0} - Logs: {backup.counts?.logs || 0}

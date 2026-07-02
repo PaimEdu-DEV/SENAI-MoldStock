@@ -77,7 +77,7 @@ export default function PieceTable({
           <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-slate-100 text-slate-400">
             <Package className="h-6 w-6" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-950">Nenhuma peça encontrada</h3>
+          <h3 className="text-lg font-semibold text-slate-950">Nenhum molde encontrado</h3>
           <p className="mt-1 text-sm text-slate-500">
             Ajuste os filtros ou cadastre um novo molde no painel administrativo.
           </p>

@@ -35,7 +35,6 @@ function filterPieces(pieces, filters) {
     const haystack = [
       piece.codigo,
       piece.nome,
-      piece.categoria,
       piece.localizacao,
     ]
       .join(' ')
@@ -77,11 +76,11 @@ export default function AdminDashboard() {
 
   async function handleDelete(piece) {
     if (!isSuperAdmin) {
-      setError('Apenas administradores podem excluir peças.')
+      setError('Apenas administradores podem excluir moldes.')
       return
     }
 
-    const confirmed = window.confirm(`Excluir a peça ${piece.nome}?`)
+    const confirmed = window.confirm(`Excluir o molde ${piece.nome}?`)
     if (confirmed) await deletePiece(piece.id, profile, piece)
   }
 
@@ -104,7 +103,7 @@ export default function AdminDashboard() {
             <Button asChild size="lg">
               <Link to="/admin/pecas/nova">
                 <Plus className="h-5 w-5" />
-                Nova peça
+                Novo molde
               </Link>
             </Button>
           </div>
