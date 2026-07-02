@@ -175,10 +175,23 @@ export async function registerSelfAdmin({ nome, email, password }) {
 export async function createProfessor({ nome, email, password, role }, actingProfile) {
   const secondary = createSecondaryAuth()
   try {
-    const credential = await withTimeout(
-      createUserWithEmailAndPassword(secondary.auth, email, password),
-      'Cadastro do professor demorou demais. Confira o Authentication.',
-    )
+    let credential
+    try {
+      credential = await withTimeout(
+        createUserWithEmailAndPassword(secondary.auth, email, password),
+        'Cadastro do professor demorou demais. Confira o Authentication.',
+      )
+    } catch (error) {
+      if (error.code !== 'auth/email-already-in-use') {
+        throw error
+      }
+
+      credential = await withTimeout(
+        signInWithEmailAndPassword(secondary.auth, email, password),
+        'Este e-mail ja existe no Authentication. Use a mesma senha temporaria anterior ou remova o usuario no Firebase Authentication.',
+      )
+    }
+
     await withTimeout(
       set(adminRef(credential.user.uid), {
         nome,

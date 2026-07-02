@@ -45,15 +45,22 @@ export async function completeFirstAccessPassword({ newPassword, profile }) {
     'Nao foi possivel alterar a senha.',
     10000,
   )
-  await update(databaseRef(db, `admins/${user.uid}`), {
-    mustChangePassword: false,
-    temporaryPassword: null,
-    updatedAt: Date.now(),
-  })
+  try {
+    await update(databaseRef(db, `admins/${user.uid}`), {
+      mustChangePassword: false,
+      temporaryPassword: null,
+      updatedAt: Date.now(),
+    })
+  } catch (error) {
+    if (String(error?.message || '').includes('PERMISSION_DENIED')) {
+      throw new Error('Acesso negado ao finalizar primeiro acesso. Publique as regras atualizadas do banco e tente novamente.')
+    }
+    throw error
+  }
   await createAuditLog(profile, {
     action: 'UPDATE',
     entity: 'user',
     entityId: user.uid,
     description: 'Senha inicial definida no primeiro acesso.',
-  })
+  }).catch(() => {})
 }

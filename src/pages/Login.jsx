@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { LoaderCircle, LogIn } from 'lucide-react'
+import { Eye, EyeOff, LoaderCircle, LogIn } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import senaiLogo from '../assets/senai.png'
@@ -39,6 +39,7 @@ function getLoginErrorMessage(error) {
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { adoptSessionProfile } = useAuth()
@@ -104,12 +105,27 @@ export default function Login() {
             </label>
             <label className="grid gap-2 text-sm font-semibold text-slate-700">
               Senha
-              <Input
-                type="password"
-                required
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
+              <span className="relative">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  className="pr-12"
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </span>
             </label>
             {error && (
               <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
