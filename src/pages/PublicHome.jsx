@@ -70,15 +70,15 @@ export default function PublicHome() {
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
-        eyebrow="Indústria 4.0 · SENAI"
-        title="Controle inteligente de moldes"
-        description="Um catálogo operacional para localizar, auditar e acompanhar o estado dos moldes e peças do setor de Plásticos com precisão."
+        eyebrow="Catálogo público · SENAI"
+        title="Catálogo público de moldes"
+        description="Visualize, pesquise e acompanhe o estado dos moldes e peças do setor de Plásticos com precisão."
         action={
-          <div className="hidden justify-items-center lg:grid">
+          <div className="hidden w-[430px] justify-items-center lg:grid">
             <img
               src={senaiMoldStockLogo}
               alt="SENAI MoldStock"
-              className="h-40 w-auto max-w-[360px] object-contain drop-shadow-[0_22px_45px_rgba(15,23,42,0.14)]"
+              className="h-52 w-auto max-w-[460px] object-contain drop-shadow-[0_22px_45px_rgba(15,23,42,0.14)]"
             />
           </div>
         }
@@ -89,7 +89,7 @@ export default function PublicHome() {
             Setor de Plásticos
           </Button>
           <Button variant="quiet" size="sm">
-            Catálogo público
+            Somente visualização
           </Button>
         </div>
       </PageHeader>

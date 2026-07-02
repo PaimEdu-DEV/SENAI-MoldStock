@@ -1,4 +1,11 @@
-﻿import { CheckCircle2, Factory, Package, Plus, TriangleAlert } from 'lucide-react'
+import {
+  CheckCircle2,
+  Factory,
+  Package,
+  Plus,
+  ShieldCheck,
+  TriangleAlert,
+} from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import FiltersBar from '../components/FiltersBar.jsx'
@@ -85,16 +92,22 @@ export default function AdminDashboard() {
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
-        eyebrow="Painel operacional"
-        title="Estoque de moldes"
-        description="Gerencie disponibilidade, manutenção, ocorrências e QR Codes com uma visão rápida do estado do laboratório."
+        eyebrow="Modo professor · Painel operacional"
+        title="Painel administrativo de moldes"
+        description="Gerencie disponibilidade, manutenção, ocorrências e QR Codes com permissões administrativas ativas."
         action={
-          <Button asChild size="lg">
-            <Link to="/admin/pecas/nova">
-              <Plus className="h-5 w-5" />
-              Nova peça
-            </Link>
-          </Button>
+          <div className="grid gap-3 sm:justify-items-end">
+            <div className="inline-flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-bold text-senai-blue shadow-soft">
+              <ShieldCheck className="h-4 w-4" />
+              Modo professor ativo
+            </div>
+            <Button asChild size="lg">
+              <Link to="/admin/pecas/nova">
+                <Plus className="h-5 w-5" />
+                Nova peça
+              </Link>
+            </Button>
+          </div>
         }
       />
 
@@ -155,6 +168,3 @@ export default function AdminDashboard() {
     </div>
   )
 }
-
-
-
