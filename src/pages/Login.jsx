@@ -142,13 +142,9 @@ export default function Login() {
             </Button>
           </form>
           <p className="mt-6 text-center text-sm text-slate-500">
-            Professor novo?{' '}
-            <Link to="/cadastro" className="font-bold text-senai-red">
-              Cadastrar com e-mail docente
-            </Link>
-            <span className="mx-2">ou</span>
+            Acesso criado pelo Super Admin.{' '}
             <Link to="/esqueci-senha" className="font-bold text-senai-blue">
-              esqueci minha senha
+              Esqueci minha senha
             </Link>
           </p>
         </Card>

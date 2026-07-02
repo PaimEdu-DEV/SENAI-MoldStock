@@ -8,6 +8,25 @@ import { Card } from '../components/ui/card.jsx'
 import { Input } from '../components/ui/input.jsx'
 import { sendPasswordReset } from '../services/securityService.js'
 
+function getResetErrorMessage(error) {
+  const rawMessage = String(error?.message || '')
+  const code = error?.code || rawMessage
+
+  if (code.includes('auth/user-not-found')) {
+    return 'Nao encontramos um professor cadastrado com este e-mail.'
+  }
+
+  if (code.includes('auth/invalid-email')) {
+    return 'Digite um e-mail valido.'
+  }
+
+  if (code.includes('auth/too-many-requests')) {
+    return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.'
+  }
+
+  return 'Nao foi possivel enviar o e-mail agora. Confira o endereco e tente novamente.'
+}
+
 export default function ForgotPassword() {
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
@@ -21,9 +40,11 @@ export default function ForgotPassword() {
     setMessage('')
     try {
       await sendPasswordReset(email)
-      setMessage('E-mail de redefinicao enviado. Confira sua caixa de entrada.')
+      setMessage(
+        'Se este e-mail estiver cadastrado, voce recebera um link de redefinicao em instantes. Confira tambem spam/lixo eletronico.',
+      )
     } catch (err) {
-      setError(err.message)
+      setError(getResetErrorMessage(err))
     } finally {
       setLoading(false)
     }
@@ -34,7 +55,7 @@ export default function ForgotPassword() {
       <PageHeader
         eyebrow="Acesso seguro"
         title="Recuperar senha"
-        description="Informe o e-mail administrativo para receber o link oficial do Firebase."
+        description="Informe o e-mail administrativo para receber um link seguro de redefinicao."
       />
 
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>

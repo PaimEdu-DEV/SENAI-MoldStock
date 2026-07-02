@@ -11,8 +11,12 @@ import { withTimeout } from './timeout.js'
 
 export async function sendPasswordReset(email) {
   requireFirebase()
+  const origin = typeof window !== 'undefined' ? window.location.origin : undefined
   return withTimeout(
-    sendPasswordResetEmail(auth, email),
+    sendPasswordResetEmail(auth, email, {
+      url: `${origin || 'https://senai-mold-stock.vercel.app'}/login`,
+      handleCodeInApp: false,
+    }),
     'Nao foi possivel enviar o e-mail de recuperacao.',
     10000,
   )

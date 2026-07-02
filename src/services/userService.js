@@ -138,40 +138,6 @@ export async function loginAdmin(email, password) {
   return profile
 }
 
-export async function registerSelfAdmin({ nome, email, password }) {
-  requireFirebase()
-  if (!email.toLowerCase().endsWith('@docente.senai.br')) {
-    throw new Error('Cadastro livre permitido apenas para e-mail @docente.senai.br.')
-  }
-
-  const credential = await withTimeout(
-    createUserWithEmailAndPassword(auth, email, password),
-    'Cadastro no Authentication demorou demais. Confira se E-mail/senha esta ativado.',
-  )
-
-  try {
-    await withTimeout(
-      set(adminRef(credential.user.uid), {
-        nome,
-        name: nome,
-        email: email.toLowerCase(),
-        role: 'admin',
-        active: true,
-        mustChangePassword: false,
-        criadoEm: Date.now(),
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      }),
-      'Usuario criado no Authentication, mas o Realtime Database nao aceitou salvar o professor. Confira as regras do Realtime Database.',
-    )
-  } catch (error) {
-    await signOut(auth)
-    throw error
-  }
-
-  return { uid: credential.user.uid, nome, email, role: 'admin' }
-}
-
 export async function createProfessor({ nome, email, password, role }, actingProfile) {
   const secondary = createSecondaryAuth()
   try {

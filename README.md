@@ -42,14 +42,13 @@ firebase deploy --only database
 
 ## Primeiro Super Admin
 
-O cadastro publico cria somente professores `admin` e exige e-mail `@docente.senai.br`.
+Nao existe cadastro publico de professores. Todo professor deve ser criado pelo painel do Super Admin.
 
 Para criar o primeiro Super Admin:
 
-1. Cadastre um professor pela tela `/cadastro`.
-2. No Realtime Database, abra `admins/{uid}`.
-3. Troque `role` de `admin` para `superadmin`.
-4. Confirme `active: true`.
+1. Entre no Vercel com `epaim@dev.com.br` e senha inicial `1234567`.
+2. O sistema cria o perfil `superadmin` inicial automaticamente se ele ainda nao existir.
+3. Confirme no Realtime Database se o perfil ficou com `role: "superadmin"` e `active: true`.
 
 Depois disso, todo professor deve ser criado em `/admin/professores` pelo Super Admin. Professores criados por ali entram com `mustChangePassword: true` e precisam trocar a senha no primeiro acesso.
 
@@ -130,7 +129,7 @@ Backup automatico pode ser ligado depois com Cloud Scheduler nos dias 1 e 15, ch
 - Pesquisa por nome, codigo, categoria e localizacao.
 - Filtros por status e localizacao.
 - Detalhe publico da peca.
-- Login, cadastro docente e recuperacao de senha.
+- Login, primeiro acesso com senha temporaria e recuperacao de senha.
 - Troca obrigatoria de senha temporaria.
 - Dashboard admin com cards de resumo.
 - CRUD de pecas com duas fotos por peca.

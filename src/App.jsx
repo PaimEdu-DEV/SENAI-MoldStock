@@ -15,7 +15,6 @@ import Login from './pages/Login.jsx'
 import PieceDetails from './pages/PieceDetails.jsx'
 import PieceForm from './pages/PieceForm.jsx'
 import PublicHome from './pages/PublicHome.jsx'
-import Register from './pages/Register.jsx'
 import './styles/global.css'
 
 function AppRoutes() {
@@ -31,7 +30,6 @@ function AppRoutes() {
       <Route path="/peca/:id" element={<PieceDetails />} />
       <Route path="/login" element={<Login />} />
       <Route path="/esqueci-senha" element={<ForgotPassword />} />
-      <Route path="/cadastro" element={<Register />} />
       <Route path="/diagnostico" element={<FirebaseDiagnostics />} />
       <Route
         path="/alterar-senha"
