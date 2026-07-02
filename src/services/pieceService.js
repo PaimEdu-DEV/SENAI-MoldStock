@@ -102,7 +102,7 @@ export async function createPiece(data, files, userProfile) {
     action: 'CREATE',
     entity: 'piece',
     entityId: newPieceRef.key,
-    description: `Molde ${data.nome} criado.`,
+    description: `Molde '${data.nome}' foi cadastrado.`,
     after: { ...data, codigo: String(data.codigo).trim() },
   })
 
@@ -134,7 +134,7 @@ export async function updatePiece(id, data, files, userProfile, before = null) {
     action: 'UPDATE',
     entity: 'piece',
     entityId: id,
-    description: `Molde ${data.nome} atualizado.`,
+    description: `Molde '${data.nome}' foi atualizado.`,
     before,
     after: updates,
   })
@@ -147,10 +147,10 @@ export async function updatePieceStatus(id, status, userProfile, before = null) 
     atualizadoEm: Date.now(),
   })
   await createAuditLog(userProfile, {
-    action: 'UPDATE',
+    action: 'STATUS_CHANGE',
     entity: 'piece',
     entityId: id,
-    description: `Status alterado para ${status}.`,
+    description: `Status do molde alterado para ${status}.`,
     before,
     after: { status },
   })
@@ -163,7 +163,7 @@ export async function deletePiece(id, userProfile, before = null) {
     action: 'DELETE',
     entity: 'piece',
     entityId: id,
-    description: 'Molde excluído.',
+    description: 'Um molde foi excluído do sistema.',
     before,
   })
 }

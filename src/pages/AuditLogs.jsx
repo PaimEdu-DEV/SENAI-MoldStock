@@ -7,6 +7,12 @@ import { Button } from '../components/ui/button.jsx'
 import { Card } from '../components/ui/card.jsx'
 import { Input, Select } from '../components/ui/input.jsx'
 import { useAuth } from '../contexts/useAuth.js'
+import {
+  formatAction,
+  formatEntity,
+  formatLogDescription,
+  getActionVariant,
+} from '../lib/auditFormat.js'
 import { formatDate } from '../lib/utils.js'
 import {
   exportLogsPdf,
@@ -28,13 +34,20 @@ const actions = [
   'CREATE',
   'UPDATE',
   'DELETE',
+  'STATUS_CHANGE',
   'BACKUP',
   'RESTORE',
+  'USER_CREATE',
+  'USER_DELETE',
+  'USER_PROMOTE',
+  'USER_DEMOTE',
+  'OCCURRENCE_CREATE',
+  'CONFIG_UPDATE',
   'PERMISSION_DENIED',
 ]
 
 const entities = ['Todos', 'piece', 'user', 'backup', 'system', 'occurrence']
-const auditableActions = new Set(['CREATE', 'UPDATE', 'DELETE', 'BACKUP', 'RESTORE', 'PERMISSION_DENIED'])
+const auditableActions = new Set(actions.filter((action) => action !== 'Todos'))
 const auditableEntities = new Set(['piece', 'user', 'backup', 'system', 'occurrence'])
 
 export default function AuditLogs() {
@@ -101,7 +114,9 @@ export default function AuditLogs() {
           onChange={(event) => setFilters({ ...filters, action: event.target.value })}
         >
           {actions.map((action) => (
-            <option key={action}>{action}</option>
+            <option key={action} value={action}>
+              {action === 'Todos' ? 'Todas as ações' : formatAction(action)}
+            </option>
           ))}
         </Select>
         <Select
@@ -109,7 +124,9 @@ export default function AuditLogs() {
           onChange={(event) => setFilters({ ...filters, entity: event.target.value })}
         >
           {entities.map((entity) => (
-            <option key={entity}>{entity}</option>
+            <option key={entity} value={entity}>
+              {entity === 'Todos' ? 'Todas as entidades' : formatEntity(entity)}
+            </option>
           ))}
         </Select>
         <Select
@@ -173,15 +190,15 @@ export default function AuditLogs() {
                         <div className="text-xs text-slate-400">{log.userEmail || '-'}</div>
                       </td>
                       <td className="px-5 py-4">
-                        <Badge variant={log.action === 'PERMISSION_DENIED' ? 'broken' : 'blue'}>
-                          {log.action}
+                        <Badge variant={getActionVariant(log.action)}>
+                          {formatAction(log.action)}
                         </Badge>
                       </td>
                       <td className="px-5 py-4 text-sm font-semibold text-slate-600">
-                        {log.entity}
+                        {formatEntity(log.entity)}
                       </td>
                       <td className="max-w-xl px-5 py-4 text-sm leading-6 text-slate-500">
-                        {log.description}
+                        {formatLogDescription(log)}
                       </td>
                     </motion.tr>
                   ))}

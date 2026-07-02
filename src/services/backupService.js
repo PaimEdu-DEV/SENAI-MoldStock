@@ -90,7 +90,12 @@ export async function createBackup(profile, type = 'manual') {
       action: 'BACKUP',
       entity: 'backup',
       entityId: newBackupRef.key,
-      description: `Backup ${type} criado.`,
+      description:
+        type === 'pre_restore'
+          ? 'Backup de segurança criado antes da restauração.'
+          : type === 'automatic'
+            ? 'Backup automático criado pelo sistema.'
+            : 'Backup manual criado com sucesso.',
       after: backup.counts,
     })
   } catch {
@@ -159,7 +164,7 @@ export async function restoreBackup(profile, backup) {
       action: 'RESTORE',
       entity: 'backup',
       entityId: backup.id,
-      description: 'Backup restaurado. Um backup pre_restore foi criado antes da restauração.',
+      description: 'Backup restaurado com sucesso. Um backup de segurança foi criado antes da restauração.',
       after: backup.counts,
     })
   } catch {

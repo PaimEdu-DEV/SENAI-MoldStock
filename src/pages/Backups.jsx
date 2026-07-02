@@ -14,6 +14,7 @@ import {
 } from '../components/ui/dialog.jsx'
 import { Input } from '../components/ui/input.jsx'
 import { useAuth } from '../contexts/useAuth.js'
+import { formatBackupType, getBackupVariant } from '../lib/auditFormat.js'
 import { formatDate } from '../lib/utils.js'
 import {
   canRestoreBackups,
@@ -31,6 +32,7 @@ export default function Backups() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState('')
+  const [advancedBackupId, setAdvancedBackupId] = useState('')
   const [restoreTarget, setRestoreTarget] = useState(null)
   const [restoreForm, setRestoreForm] = useState({ confirmation: '', password: '' })
   const canRestore = canRestoreBackups(profile)
@@ -42,7 +44,7 @@ export default function Backups() {
     ensureAutomaticBackup(profile)
       .then((backup) => {
         if (backup) {
-          setSuccess('Backup automático criado para o ciclo atual.')
+          setSuccess('Backup automático criado pelo sistema.')
         }
       })
       .catch(() => {
@@ -56,7 +58,7 @@ export default function Backups() {
     setSuccess('')
     try {
       await createBackup(profile, 'manual')
-      setSuccess('Backup criado com sucesso.')
+      setSuccess('Backup manual criado com sucesso.')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -110,7 +112,7 @@ export default function Backups() {
           <div>
             <h2 className="font-semibold text-amber-950">Restauração exige cuidado</h2>
             <p className="mt-1 text-sm leading-6 text-amber-800">
-              Antes de restaurar, o MoldStock cria um backup pre_restore. Imagens não são
+              Antes de restaurar, o MoldStock cria um backup de segurança. Imagens não são
               duplicadas: o backup guarda apenas os moldes e as URLs/base64 das imagens.
             </p>
           </div>
@@ -141,8 +143,8 @@ export default function Backups() {
               <Card className="grid gap-5 p-5 lg:grid-cols-[1fr_auto] lg:items-center">
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <Badge variant={backup.type === 'pre_restore' ? 'maintenance' : 'blue'}>
-                      {backup.type}
+                    <Badge variant={getBackupVariant(backup.type)}>
+                      {formatBackupType(backup.type)}
                     </Badge>
                     <strong className="text-lg text-slate-950">
                       {formatDate(backup.createdAt)}
@@ -150,18 +152,13 @@ export default function Backups() {
                   </div>
                   <p className="mt-2 text-sm text-slate-500">
                     Criado por {backup.createdByName || 'Sistema'} - Moldes:{' '}
-                    {backup.counts?.pieces || 0}
+                    {backup.counts?.pieces || 0} - Ocorrências:{' '}
+                    {backup.counts?.occurrences || 0} - Usuários:{' '}
+                    {backup.counts?.users || 0} - Registros:{' '}
+                    {backup.counts?.logs || 0}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => downloadBackupJson(backup)}
-                  >
-                    <Download className="h-4 w-4" />
-                    Baixar JSON
-                  </Button>
                   <Button
                     type="button"
                     onClick={() => openRestoreDialog(backup)}
@@ -171,6 +168,32 @@ export default function Backups() {
                     <RotateCcw className="h-4 w-4" />
                     {loading === backup.id ? 'Restaurando...' : 'Restaurar'}
                   </Button>
+                </div>
+                <div className="lg:col-span-2">
+                  <button
+                    type="button"
+                    className="text-xs font-bold text-slate-400 transition hover:text-slate-700"
+                    onClick={() =>
+                      setAdvancedBackupId((current) => (current === backup.id ? '' : backup.id))
+                    }
+                  >
+                    {advancedBackupId === backup.id
+                      ? 'Ocultar ferramentas avançadas'
+                      : 'Ferramentas avançadas'}
+                  </button>
+                  {advancedBackupId === backup.id && (
+                    <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => downloadBackupJson(backup)}
+                      >
+                        <Download className="h-4 w-4" />
+                        Exportar arquivo técnico
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </Card>
             </motion.article>
@@ -185,7 +208,7 @@ export default function Backups() {
                 Nenhum backup criado
               </h3>
               <p className="mt-1 text-sm text-slate-500">
-                Crie o primeiro snapshot manual para proteger os dados atuais.
+                Crie o primeiro backup para proteger os moldes cadastrados.
               </p>
             </div>
           </Card>

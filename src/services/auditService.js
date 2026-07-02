@@ -1,6 +1,7 @@
 ﻿import { off, onValue, push, ref as databaseRef, set } from 'firebase/database'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { formatAction, formatEntity, formatLogDescription } from '../lib/auditFormat.js'
 import { db, requireFirebase } from './firebase.js'
 import { withTimeout } from './timeout.js'
 
@@ -100,7 +101,7 @@ export async function exportLogsPdf(logs, filters, profile) {
   doc.text(`Emitido em: ${issuedAt}`, 14, 33)
   doc.text(`Exportado por: ${profile?.nome || profile?.email || 'Sistema'}`, 14, 39)
   doc.text(
-    `Filtros: ação=${filters.action}; entidade=${filters.entity}; usuário=${filters.user}; período=${filters.startDate || '-'} até ${filters.endDate || '-'}`,
+    `Filtros: ação=${filters.action === 'Todos' ? 'Todas' : formatAction(filters.action)}; entidade=${filters.entity === 'Todos' ? 'Todas' : formatEntity(filters.entity)}; usuário=${filters.user}; período=${filters.startDate || '-'} até ${filters.endDate || '-'}`,
     14,
     45,
   )
@@ -115,9 +116,9 @@ export async function exportLogsPdf(logs, filters, profile) {
       }).format(new Date(log.createdAt || Date.now())),
       log.userName || log.userEmail || '-',
       log.userRole || '-',
-      log.action || '-',
-      log.entity || '-',
-      log.description || '-',
+      formatAction(log.action),
+      formatEntity(log.entity),
+      formatLogDescription(log) || '-',
     ]),
     styles: { fontSize: 8, cellPadding: 2 },
     headStyles: { fillColor: [36, 84, 166] },

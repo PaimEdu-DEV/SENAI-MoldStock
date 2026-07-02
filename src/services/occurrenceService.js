@@ -38,10 +38,10 @@ export async function createOccurrence(data, userProfile) {
     criadoEm: Date.now(),
   })
   await createAuditLog(userProfile, {
-    action: 'CREATE',
+    action: 'OCCURRENCE_CREATE',
     entity: 'occurrence',
     entityId: newOccurrenceRef.key,
-    description: `Ocorrência registrada: ${data.tipo}.`,
+    description: `Ocorrência registrada para o molde: ${data.tipo}.`,
     after: data,
   })
 }

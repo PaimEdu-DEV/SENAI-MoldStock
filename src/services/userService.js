@@ -181,10 +181,10 @@ export async function createProfessor({ nome, email, password, role }, actingPro
         'Não foi possível reativar o professor no banco.',
       )
       await createAuditLog(actingProfile, {
-        action: 'UPDATE',
+        action: 'USER_CREATE',
         entity: 'user',
         entityId: uid,
-        description: `${nome} reativado com senha temporária.`,
+        description: `${nome} foi reativado com senha temporária.`,
         before: existing,
         after: { nome, email, role, active: true, mustChangePassword: true },
       })
@@ -226,10 +226,10 @@ export async function createProfessor({ nome, email, password, role }, actingPro
       'Professor criado, mas o banco não aceitou salvar o perfil.',
     )
     await createAuditLog(actingProfile, {
-      action: 'CREATE',
+      action: 'USER_CREATE',
       entity: 'user',
       entityId: credential.user.uid,
-      description: `${nome} criado como professor administrador.`,
+      description: `${nome} foi cadastrado como professor.`,
       after: { nome, email, role, mustChangePassword: true },
     })
     await signOut(secondary.auth)
@@ -270,19 +270,22 @@ export async function updateProfessor(uid, data, actingProfile, before = null) {
     updatedAt: Date.now(),
   })
   let description = 'Dados do professor atualizados.'
+  let action = 'UPDATE'
   if (Object.hasOwn(data, 'role') && before?.role !== data.role) {
     const name = before?.nome || before?.name || before?.email || 'Professor'
     if (data.role === 'superadmin') {
-      description = `${name} promovido a Super Admin.`
+      action = 'USER_PROMOTE'
+      description = `${name} foi promovido para Super Admin.`
     } else {
-      description = `${name} rebaixado para professor.`
+      action = 'USER_DEMOTE'
+      description = `${name} foi rebaixado para professor.`
     }
   } else if (Object.hasOwn(data, 'active')) {
     const name = before?.nome || before?.name || before?.email || 'Professor'
     description = data.active ? `${name} reativado.` : `${name} desativado.`
   }
   await createAuditLog(actingProfile, {
-    action: 'UPDATE',
+    action,
     entity: 'user',
     entityId: uid,
     description,
@@ -318,7 +321,7 @@ export async function deleteProfessor(uid, actingProfile, before = null) {
 
   await remove(adminRef(uid))
   await createAuditLog(actingProfile, {
-    action: 'DELETE',
+    action: 'USER_DELETE',
     entity: 'user',
     entityId: uid,
     description: `${before?.nome || before?.email || 'Professor'} removido do painel administrativo${
