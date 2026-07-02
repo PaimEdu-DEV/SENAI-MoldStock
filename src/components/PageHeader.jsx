@@ -22,7 +22,7 @@ export default function PageHeader({
       <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-senai-blue/10 blur-3xl" />
       <div className="absolute -bottom-28 left-1/2 h-64 w-64 rounded-full bg-senai-red/10 blur-3xl" />
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-        <div className="page-header-copy max-w-3xl">
+        <div className="max-w-3xl">
           {eyebrow && (
             <span className="text-xs font-black uppercase tracking-[0.28em] text-senai-red">
               {eyebrow}
@@ -37,7 +37,7 @@ export default function PageHeader({
             </p>
           )}
         </div>
-        {action && <div className="page-header-action relative shrink-0">{action}</div>}
+        {action && <div className="relative shrink-0">{action}</div>}
       </div>
       {children && <div className="relative mt-8">{children}</div>}
     </motion.section>
