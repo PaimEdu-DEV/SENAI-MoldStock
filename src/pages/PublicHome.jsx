@@ -70,15 +70,16 @@ export default function PublicHome() {
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
+        className="[&_.page-header-action]:self-center [&_.page-header-copy]:lg:max-w-2xl"
         eyebrow="Indústria 4.0 · SENAI"
         title="Controle inteligente de moldes"
         description="Um catálogo operacional para localizar, auditar e acompanhar o estado dos moldes e peças do setor de Plásticos com precisão."
         action={
-          <div className="hidden justify-items-center lg:grid">
+          <div className="hidden w-[520px] justify-items-center lg:grid xl:w-[600px]">
             <img
               src={senaiMoldStockLogo}
               alt="SENAI MoldStock"
-              className="h-40 w-auto max-w-[360px] object-contain drop-shadow-[0_22px_45px_rgba(15,23,42,0.14)]"
+              className="w-[460px] max-w-none object-contain drop-shadow-[0_28px_55px_rgba(15,23,42,0.18)] xl:w-[540px]"
             />
           </div>
         }
