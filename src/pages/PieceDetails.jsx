@@ -235,7 +235,7 @@ export default function PieceDetails() {
           <InfoItem icon={Gauge} label="Peso do molde" value={piece.pesoKg ? `${piece.pesoKg} kg` : 'Não informado'} />
           <InfoItem
             icon={Ruler}
-            label="Dimensões em milimetros"
+            label="Dimensões em Milímetros"
             value={
               formatDimensions(piece.dimensoes) || 'Não informado'
             }
