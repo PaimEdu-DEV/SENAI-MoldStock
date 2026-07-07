@@ -17,12 +17,42 @@ import {
 import { auth, createSecondaryAuth, db, requireFirebase } from './firebase.js'
 import { createAuditLog } from './auditService.js'
 import { withTimeout } from './timeout.js'
+import {
+  OWNER_EMAIL,
+  OWNER_PROTECTED_MESSAGE,
+  OWNER_ROLE,
+  isOwner,
+} from '../config/security.js'
 
-const BOOTSTRAP_SUPERADMIN_EMAIL = 'epaim@dev.com.br'
+const BOOTSTRAP_SUPERADMIN_EMAIL = OWNER_EMAIL
 const BOOTSTRAP_SUPERADMIN_PASSWORD = '1234567'
 
 export function isRootSuperAdmin(profile) {
-  return profile?.email?.toLowerCase() === BOOTSTRAP_SUPERADMIN_EMAIL
+  return isOwner(profile)
+}
+
+function isAdministrativeProfile(profile) {
+  return isOwner(profile) || (['admin', 'superadmin'].includes(profile?.role) && !profile?.adminAccessRevoked)
+}
+
+async function logBlockedOwnerAttempt(actingProfile, target, description) {
+  await createAuditLog(actingProfile, {
+    action: 'PERMISSION_DENIED',
+    entity: 'user',
+    entityId: target?.uid || null,
+    description,
+    before: target,
+  }).catch(() => {})
+}
+
+async function assertNotOwnerTarget(target, actingProfile, description) {
+  if (!isOwner(target)) return
+  await logBlockedOwnerAttempt(
+    actingProfile,
+    target,
+    description || 'Tentativa bloqueada de alterar/remover/desativar Owner.',
+  )
+  throw new Error(OWNER_PROTECTED_MESSAGE)
 }
 
 function adminRef(uid = '') {
@@ -56,7 +86,7 @@ async function createBootstrapSuperAdmin(email, password) {
     )
   } catch (error) {
     if (error.code === 'auth/email-already-in-use') {
-      throw new Error('Este e-mail já existe. Use a senha correta ou redefina a senha.')
+      throw new Error('Este e-mail já existe. Use a senha correta ou fale com o administrador.')
     }
     throw error
   }
@@ -64,7 +94,7 @@ async function createBootstrapSuperAdmin(email, password) {
     nome: 'Eduardo Paim',
     name: 'Eduardo Paim',
     email: BOOTSTRAP_SUPERADMIN_EMAIL,
-    role: 'superadmin',
+    role: OWNER_ROLE,
     active: true,
     mustChangePassword: false,
     bootstrap: true,
@@ -106,7 +136,7 @@ export async function loginAdmin(email, password) {
         nome: 'Eduardo Paim',
         name: 'Eduardo Paim',
         email: BOOTSTRAP_SUPERADMIN_EMAIL,
-        role: 'superadmin',
+        role: OWNER_ROLE,
         active: true,
         mustChangePassword: false,
         bootstrap: true,
@@ -118,24 +148,17 @@ export async function loginAdmin(email, password) {
       return { uid: credential.user.uid, ...bootstrapProfile }
     }
 
-    if (userEmail.toLowerCase().endsWith('@docente.senai.br')) {
-      const repairedProfile = {
-        nome: userEmail.split('@')[0],
-        name: userEmail.split('@')[0],
-        email: userEmail.toLowerCase(),
-        role: 'admin',
-        active: true,
-        mustChangePassword: false,
-        criadoEm: Date.now(),
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      }
-      await set(adminRef(credential.user.uid), repairedProfile)
-      return { uid: credential.user.uid, ...repairedProfile }
-    }
-
     await signOut(auth)
     throw new Error('Este usuário existe na autenticação, mas não está cadastrado como professor.')
+  }
+  if (isOwner(profile) && (profile.role !== OWNER_ROLE || profile.active !== true)) {
+    const ownerPatch = {
+      role: OWNER_ROLE,
+      active: true,
+      updatedAt: Date.now(),
+    }
+    await update(adminRef(credential.user.uid), ownerPatch)
+    return { ...profile, ...ownerPatch }
   }
   if (profile.active === false) {
     await signOut(auth)
@@ -158,6 +181,7 @@ export async function createProfessor({ nome, email, password, role }, actingPro
       if (existing.active !== false) {
         throw new Error('Este e-mail já está cadastrado como professor.')
       }
+      await assertNotOwnerTarget({ uid, ...existing }, actingProfile, 'Tentativa bloqueada de reativar/alterar Owner.')
       if (existing.temporaryPassword) {
         await signInWithEmailAndPassword(
           secondary.auth,
@@ -246,6 +270,7 @@ export function watchAdmins(callback, onError) {
       const value = snapshot.val() || {}
       const admins = Object.entries(value)
         .map(([uid, data]) => ({ uid, ...data }))
+        .filter(isAdministrativeProfile)
         .sort((a, b) => Number(b.criadoEm || 0) - Number(a.criadoEm || 0))
       callback(admins)
     },
@@ -256,15 +281,7 @@ export function watchAdmins(callback, onError) {
 
 export async function updateProfessor(uid, data, actingProfile, before = null) {
   requireFirebase()
-  if (isRootSuperAdmin(before) && !isRootSuperAdmin(actingProfile)) {
-    throw new Error('O Super Admin principal não pode ter permissões ou acesso alterados.')
-  }
-  if (isRootSuperAdmin(before) && (data.role && data.role !== 'superadmin')) {
-    throw new Error('O Super Admin principal não pode ser rebaixado.')
-  }
-  if (isRootSuperAdmin(before) && data.active === false) {
-    throw new Error('O Super Admin principal não pode ser desativado.')
-  }
+  await assertNotOwnerTarget(before, actingProfile, 'Tentativa bloqueada de alterar role/acesso do Owner.')
   await update(adminRef(uid), {
     ...data,
     updatedAt: Date.now(),
@@ -296,39 +313,51 @@ export async function updateProfessor(uid, data, actingProfile, before = null) {
 
 export async function deleteProfessor(uid, actingProfile, before = null) {
   requireFirebase()
+  await revokeAdminAccess(uid, actingProfile, before)
+}
 
-  if (isRootSuperAdmin(before)) {
-    throw new Error('O Super Admin principal não pode ser removido.')
+export async function revokeAdminAccess(uid, actingProfile, before = null) {
+  requireFirebase()
+  await assertNotOwnerTarget(before, actingProfile, 'Tentativa bloqueada de revogar acesso administrativo do Owner.')
+
+  const now = Date.now()
+  const updateData = {
+    role: 'public',
+    active: true,
+    adminAccessRevoked: true,
+    adminAccessRevokedAt: now,
+    adminAccessRevokedBy: actingProfile?.uid || '',
+    adminAccessRevokedByName: actingProfile?.nome || actingProfile?.name || actingProfile?.email || 'Sistema',
+    adminAccessRevokedReason: 'Acesso administrativo revogado pelo painel',
+    adminRevocationNoticePending: true,
+    mustChangePassword: false,
+    temporaryPassword: null,
+    updatedAt: now,
   }
-
-  const secondary = createSecondaryAuth()
-  let authRemoved = false
-  try {
-    if (before?.email && before?.temporaryPassword) {
-      await signInWithEmailAndPassword(
-        secondary.auth,
-        before.email,
-        before.temporaryPassword,
-      )
-      await deleteUser(secondary.auth.currentUser)
-      authRemoved = true
-    }
-  } catch {
-    authRemoved = false
-  } finally {
-    await secondary.cleanup()
-  }
-
-  await remove(adminRef(uid))
+  await update(adminRef(uid), updateData)
   await createAuditLog(actingProfile, {
     action: 'USER_DELETE',
     entity: 'user',
     entityId: uid,
-    description: `${before?.nome || before?.email || 'Professor'} removido do painel administrativo${
-      authRemoved ? ' e da autenticação.' : '.'
-    }`,
+    description: `${before?.nome || before?.email || 'Professor'} teve o acesso administrativo revogado.`,
     before,
+    after: updateData,
   })
+}
+
+export async function acknowledgeAdminRevocation(profile) {
+  requireFirebase()
+  if (!profile?.uid || isOwner(profile)) return
+  await createAuditLog(profile, {
+    action: 'UPDATE',
+    entity: 'user',
+    entityId: profile.uid,
+    description: 'Usuário notificado sobre revogação de acesso administrativo e removido da base administrativa.',
+  }).catch(() => {})
+  await remove(adminRef(profile.uid))
+  if (auth.currentUser?.uid === profile.uid) {
+    await deleteUser(auth.currentUser).catch(() => {})
+  }
 }
 
 

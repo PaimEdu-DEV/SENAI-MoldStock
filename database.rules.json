@@ -2,26 +2,63 @@
   "rules": {
     "pecas": {
       ".read": true,
-      ".write": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false"
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false && root.child('admins').child(auth.uid).child('role').val() != 'public'"
     },
     "ocorrencias": {
-      ".read": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false",
-      ".write": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false"
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false && root.child('admins').child(auth.uid).child('role').val() != 'public'",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false && root.child('admins').child(auth.uid).child('role').val() != 'public'"
+    },
+    "materials": {
+      ".read": true,
+      ".write": "auth != null && (root.child('admins').child(auth.uid).child('role').val() == 'superadmin' || root.child('admins').child(auth.uid).child('role').val() == 'owner' || auth.token.email == 'epaim@dev.com.br') && root.child('admins').child(auth.uid).child('active').val() != false"
+    },
+    "machines": {
+      ".read": true,
+      ".write": "auth != null && (root.child('admins').child(auth.uid).child('role').val() == 'superadmin' || root.child('admins').child(auth.uid).child('role').val() == 'owner' || auth.token.email == 'epaim@dev.com.br') && root.child('admins').child(auth.uid).child('active').val() != false"
+    },
+    "pieceChecklists": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false && root.child('admins').child(auth.uid).child('role').val() != 'public'",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false && root.child('admins').child(auth.uid).child('role').val() != 'public'"
+    },
+    "processSheets": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false && root.child('admins').child(auth.uid).child('role').val() != 'public'",
+      ".write": "auth != null && (root.child('admins').child(auth.uid).child('role').val() == 'superadmin' || root.child('admins').child(auth.uid).child('role').val() == 'owner' || auth.token.email == 'epaim@dev.com.br') && root.child('admins').child(auth.uid).child('active').val() != false"
+    },
+    "publicProcessSheets": {
+      ".read": true,
+      ".write": "auth != null && (root.child('admins').child(auth.uid).child('role').val() == 'superadmin' || root.child('admins').child(auth.uid).child('role').val() == 'owner' || auth.token.email == 'epaim@dev.com.br') && root.child('admins').child(auth.uid).child('active').val() != false"
+    },
+    "documents": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false && root.child('admins').child(auth.uid).child('role').val() != 'public'",
+      ".write": "auth != null && (root.child('admins').child(auth.uid).child('role').val() == 'superadmin' || root.child('admins').child(auth.uid).child('role').val() == 'owner' || auth.token.email == 'epaim@dev.com.br') && root.child('admins').child(auth.uid).child('active').val() != false"
+    },
+    "pieceFiles": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false && root.child('admins').child(auth.uid).child('role').val() != 'public'",
+      ".write": "auth != null && (root.child('admins').child(auth.uid).child('role').val() == 'superadmin' || root.child('admins').child(auth.uid).child('role').val() == 'owner' || auth.token.email == 'epaim@dev.com.br') && root.child('admins').child(auth.uid).child('active').val() != false"
+    },
+    "systemProtection": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false && root.child('admins').child(auth.uid).child('role').val() != 'public'",
+      ".write": "auth != null && (root.child('admins').child(auth.uid).child('role').val() == 'superadmin' || root.child('admins').child(auth.uid).child('role').val() == 'owner' || auth.token.email == 'epaim@dev.com.br') && root.child('admins').child(auth.uid).child('active').val() != false"
     },
     "logs": {
-      ".read": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false",
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false && root.child('admins').child(auth.uid).child('role').val() != 'public'",
       "$logId": {
-        ".write": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false && !data.exists() && newData.exists()"
+        ".write": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false && ((!data.exists() && newData.exists()) || ((root.child('admins').child(auth.uid).child('role').val() == 'owner' || auth.token.email == 'epaim@dev.com.br') && data.exists() && !newData.exists()))"
       }
     },
+    "archivedLogs": {
+      ".read": "auth != null && (root.child('admins').child(auth.uid).child('role').val() == 'superadmin' || root.child('admins').child(auth.uid).child('role').val() == 'owner' || auth.token.email == 'epaim@dev.com.br') && root.child('admins').child(auth.uid).child('active').val() != false",
+      ".write": "auth != null && (root.child('admins').child(auth.uid).child('role').val() == 'owner' || auth.token.email == 'epaim@dev.com.br') && root.child('admins').child(auth.uid).child('active').val() != false"
+    },
     "backups": {
-      ".read": "auth != null && root.child('admins').child(auth.uid).child('role').val() == 'superadmin' && root.child('admins').child(auth.uid).child('active').val() != false",
-      ".write": "auth != null && root.child('admins').child(auth.uid).child('role').val() == 'superadmin' && root.child('admins').child(auth.uid).child('active').val() != false"
+      ".read": "auth != null && (root.child('admins').child(auth.uid).child('role').val() == 'superadmin' || root.child('admins').child(auth.uid).child('role').val() == 'owner' || auth.token.email == 'epaim@dev.com.br') && root.child('admins').child(auth.uid).child('active').val() != false",
+      ".write": "auth != null && (root.child('admins').child(auth.uid).child('role').val() == 'superadmin' || root.child('admins').child(auth.uid).child('role').val() == 'owner' || auth.token.email == 'epaim@dev.com.br') && root.child('admins').child(auth.uid).child('active').val() != false"
     },
     "admins": {
-      ".read": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false",
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false && root.child('admins').child(auth.uid).child('role').val() != 'public'",
       "$uid": {
-        ".write": "auth != null && !(((data.child('email').val() == 'epaim@dev.com.br') || (newData.child('email').val() == 'epaim@dev.com.br')) && auth.token.email != 'epaim@dev.com.br') && ((auth.uid == $uid && !data.exists() && newData.child('role').val() == 'admin' && auth.token.email.matches(/.*@docente\\.senai\\.br$/)) || (auth.uid == $uid && auth.token.email == 'epaim@dev.com.br' && newData.child('role').val() == 'superadmin') || (auth.uid == $uid && data.exists() && data.child('mustChangePassword').val() == true && newData.child('mustChangePassword').val() == false && newData.child('role').val() == data.child('role').val() && newData.child('email').val() == data.child('email').val()) || (root.child('admins').child(auth.uid).child('role').val() == 'superadmin' && root.child('admins').child(auth.uid).child('active').val() != false))"
+        ".read": "auth != null && ((auth.uid == $uid && data.exists()) || (root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('active').val() != false && root.child('admins').child(auth.uid).child('role').val() != 'public'))",
+        ".write": "auth != null && !(((data.child('email').val() == 'epaim@dev.com.br') || (newData.child('email').val() == 'epaim@dev.com.br')) && (auth.token.email != 'epaim@dev.com.br' || !newData.exists() || newData.child('email').val() != 'epaim@dev.com.br' || newData.child('role').val() != 'owner' || newData.child('active').val() == false)) && ((auth.uid == $uid && !data.exists() && newData.child('role').val() == 'admin' && auth.token.email.matches(/.*@docente\\.senai\\.br$/)) || (auth.uid == $uid && auth.token.email == 'epaim@dev.com.br' && newData.child('role').val() == 'owner') || (auth.uid == $uid && data.exists() && data.child('mustChangePassword').val() == true && newData.child('mustChangePassword').val() == false && newData.child('role').val() == data.child('role').val() && newData.child('email').val() == data.child('email').val()) || (auth.uid == $uid && data.child('adminAccessRevoked').val() == true && newData.child('adminRevocationNoticePending').val() == false && newData.child('role').val() == 'public') || (auth.uid == $uid && data.child('adminAccessRevoked').val() == true && !newData.exists()) || ((root.child('admins').child(auth.uid).child('role').val() == 'superadmin' || root.child('admins').child(auth.uid).child('role').val() == 'owner' || auth.token.email == 'epaim@dev.com.br') && root.child('admins').child(auth.uid).child('active').val() != false))"
       }
     }
   }

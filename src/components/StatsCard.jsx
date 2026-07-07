@@ -1,4 +1,5 @@
-﻿import { motion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { useIsMobile } from '../hooks/useIsMobile.js'
 import { cn } from '../lib/utils.js'
 import { Card } from './ui/card.jsx'
 
@@ -10,15 +11,19 @@ const tones = {
 }
 
 export default function StatsCard({ icon: Icon, label, value, description, tone = 'blue' }) {
+  const isMobile = useIsMobile()
+  const Wrapper = isMobile ? 'div' : motion.div
+  const wrapperProps = isMobile ? {} : { whileHover: { y: -4 }, transition: { duration: 0.2 } }
+
   return (
-    <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
+    <Wrapper {...wrapperProps}>
       <Card
         className={cn(
           'relative min-h-[132px] overflow-hidden bg-gradient-to-br p-5',
           tones[tone] || tones.blue,
         )}
       >
-        <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-current opacity-[0.06]" />
+        <div className="absolute -right-8 -top-8 hidden h-28 w-28 rounded-full bg-current opacity-[0.06] sm:block" />
         <div className="relative flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-slate-500 dark:text-slate-300">
@@ -36,8 +41,6 @@ export default function StatsCard({ icon: Icon, label, value, description, tone 
           {description}
         </p>
       </Card>
-    </motion.div>
+    </Wrapper>
   )
 }
-
-

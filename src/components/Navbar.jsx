@@ -1,6 +1,8 @@
 ﻿import { AnimatePresence, motion } from 'framer-motion'
 import {
   LayoutDashboard,
+  FileText,
+  Info,
   LogIn,
   LogOut,
   Moon,
@@ -14,6 +16,7 @@ import { useEffect, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import senaiLogo from '../assets/senai.png'
 import { useAuth } from '../contexts/useAuth.js'
+import { useIsMobile } from '../hooks/useIsMobile.js'
 import { cn } from '../lib/utils.js'
 import { Button } from './ui/button.jsx'
 import InstallPwaButton from './InstallPwaButton.jsx'
@@ -25,7 +28,8 @@ function NavItem({ to, children }) {
       className={({ isActive }) =>
         cn(
           'relative inline-flex h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-950',
-          isActive && 'bg-slate-100 text-slate-950',
+          'dark:text-slate-300 dark:hover:bg-white/[0.055] dark:hover:text-slate-50',
+          isActive && 'bg-slate-100 text-slate-950 dark:bg-white/[0.075] dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,.04),0_0_22px_rgba(36,84,166,.06)]',
         )
       }
     >
@@ -37,6 +41,7 @@ function NavItem({ to, children }) {
 export default function Navbar() {
   const { isAdmin, isSuperAdmin, logout, profile } = useAuth()
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [theme, setTheme] = useState(() => {
     if (typeof window === 'undefined') return 'light'
     return localStorage.getItem('moldstock-theme') || 'light'
@@ -53,15 +58,17 @@ export default function Navbar() {
     navigate('/login')
   }
 
+  const Header = isMobile ? 'header' : motion.header
+  const headerProps = isMobile ? {} : { initial: { y: -18, opacity: 0 }, animate: { y: 0, opacity: 1 } }
+
   return (
-    <motion.header
-      initial={{ y: -18, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/82 backdrop-blur-2xl"
+    <Header
+      {...headerProps}
+      className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 shadow-[0_1px_0_rgba(255,255,255,.55)] backdrop-blur-2xl dark:border-white/5 dark:bg-[#08111f]/78 dark:shadow-[0_18px_44px_rgba(0,0,0,.22),inset_0_1px_0_rgba(255,255,255,.035)]"
     >
       <div className="mx-auto flex min-h-[72px] w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
         <NavLink to="/" className="group flex items-center gap-4">
-          <div className="grid h-11 w-28 place-items-center rounded-2xl border border-slate-200 bg-white px-3 shadow-soft transition group-hover:-translate-y-0.5">
+          <div className="grid h-11 w-28 place-items-center rounded-2xl border border-slate-200 bg-white px-3 shadow-soft transition group-hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/[0.055] dark:shadow-[inset_0_1px_0_rgba(255,255,255,.05)]">
             <img src={senaiLogo} alt="SENAI" className="w-24" />
           </div>
           <div className="hidden sm:block">
@@ -103,10 +110,21 @@ export default function Navbar() {
             </>
           )}
           {isAdmin && (
-            <NavItem to="/admin/auditoria">
-              <ScrollText className="h-4 w-4" />
-              <span className="hidden xl:inline">Auditoria</span>
-            </NavItem>
+            <>
+              <NavItem to="/admin/documentos">
+                <FileText className="h-4 w-4" />
+                <span className="inline xl:hidden">Docs</span>
+                <span className="hidden xl:inline">Documentos</span>
+              </NavItem>
+              <NavItem to="/admin/auditoria">
+                <ScrollText className="h-4 w-4" />
+                <span className="hidden xl:inline">Auditoria</span>
+              </NavItem>
+              <NavItem to="/admin/sobre">
+                <Info className="h-4 w-4" />
+                <span className="hidden xl:inline">Sobre</span>
+              </NavItem>
+            </>
           )}
           {isAdmin ? (
             <Button type="button" variant="secondary" size="sm" onClick={handleLogout}>
@@ -140,7 +158,7 @@ export default function Navbar() {
           )}
         </nav>
       </div>
-    </motion.header>
+    </Header>
   )
 }
 

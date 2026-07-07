@@ -15,8 +15,12 @@ export default function ProtectedRoute({ children, requireSuperAdmin = false }) 
     )
   }
 
+  if (profile?.adminAccessRevoked && profile?.adminRevocationNoticePending) {
+    return <Navigate to="/acesso-revogado" replace />
+  }
+
   if (!isAdmin) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />
+    return profile ? <Navigate to="/" replace /> : <Navigate to="/login" replace state={{ from: location.pathname }} />
   }
 
   if (requireSuperAdmin && !isSuperAdmin) {

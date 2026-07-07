@@ -1,26 +1,12 @@
 ﻿import {
   EmailAuthProvider,
   reauthenticateWithCredential,
-  sendPasswordResetEmail,
   updatePassword,
 } from 'firebase/auth'
 import { ref as databaseRef, update } from 'firebase/database'
 import { createAuditLog } from './auditService.js'
 import { auth, db, requireFirebase } from './firebase.js'
 import { withTimeout } from './timeout.js'
-
-export async function sendPasswordReset(email) {
-  requireFirebase()
-  const origin = typeof window !== 'undefined' ? window.location.origin : undefined
-  return withTimeout(
-    sendPasswordResetEmail(auth, email, {
-      url: `${origin || 'https://senai-mold-stock.vercel.app'}/login`,
-      handleCodeInApp: false,
-    }),
-    'Não foi possível enviar o e-mail de recuperação.',
-    10000,
-  )
-}
 
 export async function reauthenticateCurrentUser(password) {
   requireFirebase()

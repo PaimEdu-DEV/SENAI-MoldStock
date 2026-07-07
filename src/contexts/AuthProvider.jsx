@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { auth, isFirebaseConfigured } from '../services/firebase.js'
 import { getAdminProfile } from '../services/userService.js'
+import { hasAdminAccess, isOwner, isPrivilegedAdmin } from '../config/security.js'
 import { AuthContext } from './authContext.js'
 
 export function AuthProvider({ children }) {
@@ -43,8 +44,9 @@ export function AuthProvider({ children }) {
       profile,
       loading,
       isFirebaseConfigured,
-      isAdmin: Boolean(profile),
-      isSuperAdmin: profile?.role === 'superadmin',
+      isAdmin: hasAdminAccess(profile),
+      isSuperAdmin: isPrivilegedAdmin(profile),
+      isOwner: isOwner(profile),
       adoptSessionProfile: (nextProfile) => {
         setUser(auth?.currentUser || null)
         setProfile(nextProfile)

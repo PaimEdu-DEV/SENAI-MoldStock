@@ -4,6 +4,10 @@ const actionLabels = {
   DELETE: 'Exclusão',
   STATUS_CHANGE: 'Alteração de status',
   BACKUP: 'Backup',
+  BACKUP_SKIPPED: 'Backup ignorado',
+  BACKUP_PROTECTION_ON: 'Proteção ativada',
+  BACKUP_PROTECTION_OFF: 'Proteção encerrada',
+  BACKUP_PROTECTION_OVERRIDE: 'Proteção ignorada',
   RESTORE: 'Restauração',
   USER_CREATE: 'Criação de usuário',
   USER_DELETE: 'Exclusão de usuário',
@@ -39,6 +43,10 @@ const actionVariants = {
   DELETE: 'broken',
   USER_DELETE: 'broken',
   BACKUP: 'blue',
+  BACKUP_SKIPPED: 'maintenance',
+  BACKUP_PROTECTION_ON: 'maintenance',
+  BACKUP_PROTECTION_OFF: 'ok',
+  BACKUP_PROTECTION_OVERRIDE: 'blue',
   RESTORE: 'maintenance',
   PERMISSION_DENIED: 'broken',
 }
@@ -73,8 +81,29 @@ export function getBackupVariant(type) {
   return variants[type] || 'neutral'
 }
 
+function getPieceLabel(log) {
+  const source = log?.before || log?.after || {}
+  const name = source.nome || source.name || source.codigo || source.code
+  if (!name) return ''
+  const code = source.codigo && source.codigo !== name ? ` (${source.codigo})` : ''
+  return `${name}${code}`
+}
+
 export function formatLogDescription(log) {
   const description = log?.description || ''
+  const pieceLabel = log?.entity === 'piece' ? getPieceLabel(log) : ''
+
+  if (pieceLabel && description.includes('foi exclu')) {
+    return `Molde '${pieceLabel}' foi excluído do sistema.`
+  }
+
+  if (pieceLabel && description.includes('foi atualizado')) {
+    return `Molde '${pieceLabel}' foi atualizado.`
+  }
+
+  if (pieceLabel && description.includes('foi cadastrado')) {
+    return `Molde '${pieceLabel}' foi cadastrado.`
+  }
 
   if (/^Molde .+ criado\.$/.test(description)) {
     const name = description.replace(/^Molde /, '').replace(/ criado\.$/, '')

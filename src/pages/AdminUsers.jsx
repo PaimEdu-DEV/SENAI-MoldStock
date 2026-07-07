@@ -13,6 +13,8 @@ import {
 } from '../components/ui/dialog.jsx'
 import { Input, Select } from '../components/ui/input.jsx'
 import { useAuth } from '../contexts/useAuth.js'
+import { useToast } from '../contexts/toastContext.js'
+import { OWNER_PROTECTED_MESSAGE, isOwner } from '../config/security.js'
 import { reauthenticateCurrentUser } from '../services/securityService.js'
 import {
   createProfessor,
@@ -30,6 +32,7 @@ const emptyForm = {
 
 export default function AdminUsers() {
   const { user, profile } = useAuth()
+  const { toast } = useToast()
   const [admins, setAdmins] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [showCreatePassword, setShowCreatePassword] = useState(false)
@@ -60,8 +63,9 @@ export default function AdminUsers() {
   }
 
   async function handleRoleChange(admin, role) {
-    if (isRootSuperAdmin(admin) && role !== 'superadmin') {
-      setError('O Super Admin principal não pode ser rebaixado.')
+    if (isOwner(admin)) {
+      setError(OWNER_PROTECTED_MESSAGE)
+      toast({ title: 'Ação bloqueada', description: OWNER_PROTECTED_MESSAGE, tone: 'warning' })
       return
     }
     if (admin.uid === user.uid && role !== 'superadmin') {
@@ -95,8 +99,9 @@ export default function AdminUsers() {
   }
 
   async function handleActiveChange(admin) {
-    if (isRootSuperAdmin(admin)) {
-      setError('O Super Admin principal não pode ser desativado.')
+    if (isOwner(admin)) {
+      setError(OWNER_PROTECTED_MESSAGE)
+      toast({ title: 'Ação bloqueada', description: OWNER_PROTECTED_MESSAGE, tone: 'warning' })
       return
     }
     if (admin.uid === user.uid) {
@@ -107,8 +112,9 @@ export default function AdminUsers() {
   }
 
   async function handleDelete(admin) {
-    if (isRootSuperAdmin(admin)) {
-      setError('O Super Admin principal não pode ser removido.')
+    if (isOwner(admin)) {
+      setError(OWNER_PROTECTED_MESSAGE)
+      toast({ title: 'Ação bloqueada', description: OWNER_PROTECTED_MESSAGE, tone: 'warning' })
       return
     }
     if (admin.uid === user.uid) {
@@ -127,6 +133,7 @@ export default function AdminUsers() {
     try {
       await reauthenticateCurrentUser(deletePassword)
       await deleteProfessor(deleteRequest.uid, profile, deleteRequest)
+      toast({ title: 'Acesso administrativo revogado', description: `${deleteRequest.nome || deleteRequest.email} será notificado no próximo login.`, tone: 'success' })
       setDeleteRequest(null)
       setDeletePassword('')
     } catch (err) {
@@ -227,16 +234,16 @@ export default function AdminUsers() {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <strong className="font-semibold text-slate-950">{admin.nome}</strong>
-                    {admin.role === 'superadmin' && (
+                    {isOwner(admin) && (
+                      <Badge variant="ok">
+                        <ShieldCheck className="h-3 w-3" />
+                        Owner · Usuário raiz
+                      </Badge>
+                    )}
+                    {!isOwner(admin) && admin.role === 'superadmin' && (
                       <Badge variant="blue">
                         <Shield className="h-3 w-3" />
                         Super Admin
-                      </Badge>
-                    )}
-                    {isRootSuperAdmin(admin) && (
-                      <Badge variant="ok">
-                        <ShieldCheck className="h-3 w-3" />
-                        Principal
                       </Badge>
                     )}
                     {admin.mustChangePassword && (
@@ -282,26 +289,29 @@ export default function AdminUsers() {
                   onChange={(event) => handleRoleChange(admin, event.target.value)}
                   disabled={isRootSuperAdmin(admin)}
                 >
+                  {isOwner(admin) && <option value="owner">Owner</option>}
                   <option value="admin">Admin</option>
                   <option value="superadmin">Super Admin</option>
                 </Select>
                 <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => handleActiveChange(admin)}
-                    disabled={isRootSuperAdmin(admin)}
-                  >
-                    {admin.active === false ? 'Ativar' : 'Desativar'}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => handleDelete(admin)}
-                    disabled={isRootSuperAdmin(admin)}
-                  >
-                    Remover
-                  </Button>
+                  {!isOwner(admin) && (
+                    <>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => handleActiveChange(admin)}
+                      >
+                        {admin.active === false ? 'Ativar' : 'Desativar'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => handleDelete(admin)}
+                      >
+                        Remover
+                      </Button>
+                    </>
+                  )}
                 </div>
               </article>
             ))}
@@ -355,6 +365,9 @@ export default function AdminUsers() {
             <DialogTitle>Confirmar remoção de professor</DialogTitle>
             <DialogDescription>
               Informe sua senha para remover {deleteRequest?.nome || 'este professor'} do painel administrativo.
+              <span className="mt-2 block font-semibold text-slate-700">
+                O usuário será notificado desta ação e perderá o acesso ao painel administrativo.
+              </span>
             </DialogDescription>
           </DialogHeader>
 
@@ -375,7 +388,7 @@ export default function AdminUsers() {
               </Button>
               <Button type="submit" disabled={confirmingDelete}>
                 <ShieldCheck className="h-4 w-4" />
-                {confirmingDelete ? 'Removendo...' : 'Confirmar remoção'}
+                {confirmingDelete ? 'Revogando...' : 'Revogar acesso'}
               </Button>
             </div>
           </form>

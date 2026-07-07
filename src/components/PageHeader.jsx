@@ -1,4 +1,5 @@
-﻿import { motion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { useIsMobile } from '../hooks/useIsMobile.js'
 import { cn } from '../lib/utils.js'
 
 export default function PageHeader({
@@ -9,18 +10,21 @@ export default function PageHeader({
   children,
   className,
 }) {
+  const isMobile = useIsMobile()
+  const Component = isMobile ? 'section' : motion.section
+  const motionProps = isMobile
+    ? {}
+    : { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 } }
+
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
+    <Component
+      {...motionProps}
       className={cn(
-        'relative overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white/88 p-6 shadow-soft backdrop-blur-xl sm:p-8 lg:p-10',
+        'premium-card premium-hero relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white/88 p-5 shadow-soft backdrop-blur-xl sm:rounded-[2rem] sm:p-8 lg:p-10',
         className,
       )}
     >
-      <div className="absolute inset-0 glass-grid opacity-40" />
-      <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-senai-blue/10 blur-3xl" />
-      <div className="absolute -bottom-28 left-1/2 h-64 w-64 rounded-full bg-senai-red/10 blur-3xl" />
+      <div className="absolute inset-0 hidden glass-grid opacity-40 sm:block" />
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl">
           {eyebrow && (
@@ -28,7 +32,7 @@ export default function PageHeader({
               {eyebrow}
             </span>
           )}
-          <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl lg:text-6xl">
+          <h1 className="mt-4 text-3xl font-semibold text-slate-950 sm:text-5xl sm:tracking-[-0.04em] lg:text-6xl">
             {title}
           </h1>
           {description && (
@@ -40,8 +44,6 @@ export default function PageHeader({
         {action && <div className="relative shrink-0">{action}</div>}
       </div>
       {children && <div className="relative mt-8">{children}</div>}
-    </motion.section>
+    </Component>
   )
 }
-
-

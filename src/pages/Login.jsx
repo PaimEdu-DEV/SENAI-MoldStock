@@ -1,7 +1,7 @@
 ﻿import { motion } from 'framer-motion'
 import { Eye, EyeOff, LoaderCircle, LogIn } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import senaiLogo from '../assets/senai.png'
 import { Button } from '../components/ui/button.jsx'
 import { Card } from '../components/ui/card.jsx'
@@ -13,19 +13,25 @@ import { loginAdmin } from '../services/userService.js'
 function getLoginErrorMessage(error) {
   const rawMessage = String(error?.message || '')
   const code = error?.code || rawMessage
+  const normalizedMessage = rawMessage
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
 
   if (
     code.includes('auth/invalid-credential') ||
     code.includes('auth/wrong-password') ||
     code.includes('auth/user-not-found') ||
     code.includes('auth/invalid-login-credentials') ||
-    rawMessage.includes('Credenciais invalidas')
+    normalizedMessage.includes('credenciais invalidas') ||
+    normalizedMessage.includes('senha correta') ||
+    normalizedMessage.includes('email ja existe')
   ) {
     return 'Erro ao entrar. Usuário ou senha incorretos.'
   }
 
-  if (rawMessage.includes('ja existe')) {
-    return 'Este e-mail já existe. Use a senha correta ou redefina a senha.'
+  if (normalizedMessage.includes('ja existe')) {
+    return 'Este e-mail já existe. Use a senha correta ou fale com o administrador.'
   }
 
   if (rawMessage.includes('desativado')) {
@@ -56,6 +62,10 @@ export default function Login() {
         10000,
       )
       adoptSessionProfile(profile)
+      if (profile?.adminAccessRevoked && profile?.adminRevocationNoticePending) {
+        navigate('/acesso-revogado', { replace: true })
+        return
+      }
       navigate(profile?.mustChangePassword ? '/alterar-senha' : location.state?.from || '/admin')
     } catch (err) {
       setError(getLoginErrorMessage(err))
@@ -136,10 +146,7 @@ export default function Login() {
             </Button>
           </form>
           <p className="mt-6 text-center text-sm text-slate-500">
-            Acesso criado pelo Administrador.{' '}
-            <Link to="/esqueci-senha" className="font-bold text-senai-blue">
-              Esqueci minha senha
-            </Link>
+            Acesso criado pelo Administrador.
           </p>
         </Card>
       </motion.div>

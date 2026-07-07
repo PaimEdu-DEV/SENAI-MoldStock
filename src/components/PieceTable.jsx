@@ -10,6 +10,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
+import { formatDimensions, idsToNames } from '../lib/pieceMeta.js'
 import { formatDate } from '../lib/utils.js'
 import PieceImage from './PieceImage.jsx'
 import StatusBadge from './StatusBadge.jsx'
@@ -63,6 +64,8 @@ export default function PieceTable({
   onStatus,
   onDelete,
   canDelete = false,
+  materials = [],
+  machines = [],
 }) {
   const navigate = useNavigate()
 
@@ -97,12 +100,17 @@ export default function PieceTable({
                 <th className="px-5 py-4">Status</th>
                 <th className="px-5 py-4">Localização</th>
                 <th className="px-5 py-4">N° Cav.</th>
+                <th className="px-5 py-4">Técnico</th>
                 <th className="px-5 py-4">Atualização</th>
                 {admin && <th className="px-5 py-4 text-right">Ações</th>}
               </tr>
             </thead>
             <tbody>
-              {pieces.map((piece, index) => (
+              {pieces.map((piece, index) => {
+                const materialNames = idsToNames(piece.materialIds, materials)
+                const machineNames = idsToNames(piece.machineIds, machines)
+                const dimensions = formatDimensions(piece.dimensoes)
+                return (
                 <motion.tr
                   key={piece.id}
                   initial={{ opacity: 0, y: 8 }}
@@ -152,6 +160,14 @@ export default function PieceTable({
                   <td className="px-5 py-4 text-sm font-semibold text-slate-800">
                     {piece.quantidade || 1}
                   </td>
+                  <td className="px-5 py-4">
+                    <div className="grid gap-1 text-xs font-semibold text-slate-500">
+                      <span>Peso: {piece.pesoKg ? `${piece.pesoKg} kg` : '-'}</span>
+                      <span>Dim.: {dimensions || '-'}</span>
+                      <span>Mat.: {materialNames.length ? materialNames.join(', ') : '-'}</span>
+                      <span>Maq.: {machineNames.length ? machineNames.join(', ') : '-'}</span>
+                    </div>
+                  </td>
                   <td className="px-5 py-4 text-sm text-slate-500">
                     {formatDate(piece.atualizadoEm)}
                   </td>
@@ -195,7 +211,8 @@ export default function PieceTable({
                     </td>
                   )}
                 </motion.tr>
-              ))}
+                )
+              })}
             </tbody>
           </table>
         </div>

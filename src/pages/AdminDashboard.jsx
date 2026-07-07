@@ -1,6 +1,7 @@
-import {
+﻿import {
   CheckCircle2,
   Factory,
+  FileText,
   Package,
   Plus,
   ShieldCheck,
@@ -9,6 +10,7 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import FiltersBar from '../components/FiltersBar.jsx'
+import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import OccurrenceModal from '../components/OccurrenceModal.jsx'
 import PageHeader from '../components/PageHeader.jsx'
 import PieceTable from '../components/PieceTable.jsx'
@@ -16,6 +18,7 @@ import QRCodeModal from '../components/QRCodeModal.jsx'
 import StatsCard from '../components/StatsCard.jsx'
 import { Button } from '../components/ui/button.jsx'
 import { useAuth } from '../contexts/useAuth.js'
+import { useToast } from '../contexts/toastContext.js'
 import { deletePiece, watchPieces } from '../services/pieceService.js'
 
 const initialFilters = {
@@ -51,11 +54,14 @@ function filterPieces(pieces, filters) {
 
 export default function AdminDashboard() {
   const { profile, isSuperAdmin } = useAuth()
+  const { toast } = useToast()
   const [pieces, setPieces] = useState([])
   const [filters, setFilters] = useState(initialFilters)
   const [qrPiece, setQrPiece] = useState(null)
   const [occurrencePiece, setOccurrencePiece] = useState(null)
   const [statusPiece, setStatusPiece] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -80,8 +86,23 @@ export default function AdminDashboard() {
       return
     }
 
-    const confirmed = window.confirm(`Excluir o molde ${piece.nome}?`)
-    if (confirmed) await deletePiece(piece.id, profile, piece)
+    setDeleteTarget(piece)
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return
+    setDeleteLoading(true)
+    setError('')
+    try {
+      await deletePiece(deleteTarget.id, profile, deleteTarget)
+      toast({ title: 'Molde excluído', description: `"${deleteTarget.nome}" foi removido do catálogo.`, tone: 'success' })
+      setDeleteTarget(null)
+    } catch (err) {
+      setError(err.message)
+      toast({ title: 'Não foi possível excluir o molde', description: err.message, tone: 'error' })
+    } finally {
+      setDeleteLoading(false)
+    }
   }
 
   async function handleQrCode(piece) {
@@ -104,6 +125,12 @@ export default function AdminDashboard() {
               <Link to="/admin/pecas/nova">
                 <Plus className="h-5 w-5" />
                 Novo molde
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="secondary">
+              <Link to="/admin/documentos">
+                <FileText className="h-5 w-5" />
+                Documentos
               </Link>
             </Button>
           </div>
@@ -163,6 +190,15 @@ export default function AdminDashboard() {
         piece={statusPiece}
         mode="status"
         onClose={() => setStatusPiece(null)}
+      />
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Excluir molde?"
+        description={`Você está prestes a excluir o molde "${deleteTarget?.nome}". Essa ação não poderá ser desfeita.`}
+        confirmLabel="Excluir molde"
+        loading={deleteLoading}
+        onConfirm={confirmDelete}
       />
     </div>
   )

@@ -1,15 +1,18 @@
 ﻿import { motion } from 'framer-motion'
-import { ImagePlus, QrCode, Save } from 'lucide-react'
+import { CheckCircle2, ImagePlus, LoaderCircle, QrCode, Save } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import OccurrenceModal from '../components/OccurrenceModal.jsx'
 import PageHeader from '../components/PageHeader.jsx'
+import ProcessSheetsSection from '../components/ProcessSheetsSection.jsx'
 import QRCodeModal from '../components/QRCodeModal.jsx'
+import TaxonomySelector from '../components/TaxonomySelector.jsx'
 import { Button } from '../components/ui/button.jsx'
 import { Card } from '../components/ui/card.jsx'
 import { Input, Textarea } from '../components/ui/input.jsx'
 import { useAuth } from '../contexts/useAuth.js'
 import { cn } from '../lib/utils.js'
+import { saveDraftProcessSheets } from '../services/moldTechService.js'
 import { createPiece, getPiece, updatePiece } from '../services/pieceService.js'
 import { withTimeout } from '../services/timeout.js'
 
@@ -21,6 +24,14 @@ const emptyForm = {
   descricao: '',
   localizacao: '',
   quantidade: 1,
+  materialIds: [],
+  machineIds: [],
+  pesoKg: '',
+  dimensoes: {
+    altura: '',
+    largura: '',
+    comprimento: '',
+  },
 }
 
 const statusOptions = [
@@ -77,6 +88,67 @@ function UploadField({ label, currentUrl, onChange }) {
   )
 }
 
+function SaveProgressScreen({ progress }) {
+  return (
+    <div className="mx-auto grid min-h-[calc(100vh-73px)] w-full max-w-3xl place-items-center px-4 py-10 sm:px-6 lg:px-8">
+      <motion.section
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full rounded-[2rem] border border-slate-200 bg-white/90 p-8 shadow-elevated backdrop-blur-xl"
+      >
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-blue-50 text-senai-blue">
+          {progress.percent >= 100 ? (
+            <CheckCircle2 className="h-8 w-8" />
+          ) : (
+            <LoaderCircle className="h-8 w-8 animate-spin" />
+          )}
+        </div>
+        <div className="mt-6 text-center">
+          <span className="text-xs font-black uppercase tracking-[0.28em] text-senai-red">
+            Salvando molde
+          </span>
+          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">
+            {progress.percent >= 100 ? 'Tudo pronto para gerar o QR Code' : 'Preparando cadastro técnico'}
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-slate-500">
+            {progress.label || 'Enviando dados, imagens e fichas de processo com segurança.'}
+          </p>
+        </div>
+
+        <div className="mt-8">
+          <div className="mb-3 flex items-center justify-between text-sm font-bold text-slate-700">
+            <span>Progresso</span>
+            <span>{progress.percent}%</span>
+          </div>
+          <div className="h-4 overflow-hidden rounded-full bg-slate-100">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-senai-blue to-senai-orange"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress.percent}%` }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-2 text-sm font-medium text-slate-500">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-senai-blue" />
+            Salvando informações gerais
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-senai-orange" />
+            Enviando imagens e fichas vinculadas
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            Gerando QR Code ao finalizar
+          </div>
+        </div>
+      </motion.section>
+    </div>
+  )
+}
+
 export default function PieceForm() {
   const { id } = useParams()
   const isEditing = Boolean(id)
@@ -86,12 +158,18 @@ export default function PieceForm() {
   const [originalPiece, setOriginalPiece] = useState(null)
   const [previousStatus, setPreviousStatus] = useState('OK')
   const [files, setFiles] = useState({ fotoPeca: null, fotoMolde: null })
+  const [processSheets, setProcessSheets] = useState([])
   const [currentImages, setCurrentImages] = useState({})
   const [savedPieceForStatus, setSavedPieceForStatus] = useState(null)
   const [createdQrPiece, setCreatedQrPiece] = useState(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [saving, setSaving] = useState(false)
+  const [saveProgress, setSaveProgress] = useState({
+    active: false,
+    percent: 0,
+    label: '',
+  })
 
   useEffect(() => {
     if (!isEditing) return
@@ -106,6 +184,14 @@ export default function PieceForm() {
         descricao: piece.descricao || '',
         localizacao: piece.localizacao || '',
         quantidade: piece.quantidade || 1,
+        materialIds: piece.materialIds || [],
+        machineIds: piece.machineIds || [],
+        pesoKg: piece.pesoKg || '',
+        dimensoes: {
+          altura: piece.dimensoes?.altura || '',
+          largura: piece.dimensoes?.largura || '',
+          comprimento: piece.dimensoes?.comprimento || '',
+        },
       })
       setPreviousStatus(piece.status || 'OK')
       setCurrentImages({
@@ -114,6 +200,17 @@ export default function PieceForm() {
       })
     })
   }, [id, isEditing])
+
+  useEffect(() => {
+    if (!saveProgress.active || !saving) return undefined
+    const timer = window.setInterval(() => {
+      setSaveProgress((current) => ({
+        ...current,
+        percent: Math.min(92, current.percent + 2),
+      }))
+    }, 450)
+    return () => window.clearInterval(timer)
+  }, [saveProgress.active, saving])
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -139,19 +236,62 @@ export default function PieceForm() {
         }
         navigate('/admin')
       } else {
+        setSaveProgress({
+          active: true,
+          percent: 8,
+          label: 'Organizando os dados do molde.',
+        })
         const created = await withTimeout(
           createPiece(form, files, profile),
           'Criar molde demorou demais. Confira as regras do banco.',
           15000,
         )
-        setCreatedQrPiece({ id: created.id, codigo: form.codigo, nome: form.nome })
-        if (created.imageError) {
-          setNotice(`Molde salvo e QR gerado. As imagens não subiram: ${created.imageError}`)
+        setSaveProgress({
+          active: true,
+          percent: processSheets.length ? 58 : 84,
+          label: processSheets.length
+            ? 'Molde criado. Enviando fichas de processo e imagens.'
+            : 'Molde criado. Preparando QR Code.',
+        })
+        let processSheetError = ''
+        if (processSheets.length) {
+          try {
+            await withTimeout(
+              saveDraftProcessSheets(created.id, processSheets, profile, {
+                ...form,
+                id: created.id,
+              }),
+              'Salvar fichas de processo demorou demais. Confira Storage e banco.',
+              30000,
+            )
+          } catch (err) {
+            processSheetError = err.message
+          }
+        }
+        setSaveProgress({
+          active: true,
+          percent: 100,
+          label: 'Cadastro concluído. Abrindo QR Code.',
+        })
+        window.setTimeout(() => {
+          setCreatedQrPiece({ id: created.id, codigo: form.codigo, nome: form.nome })
+        }, 450)
+        if (created.imageError || processSheetError) {
+          setNotice(
+            [
+              'Molde salvo e QR gerado.',
+              created.imageError ? `Imagens principais: ${created.imageError}` : '',
+              processSheetError ? `Fichas de processo: ${processSheetError}` : '',
+            ]
+              .filter(Boolean)
+              .join(' '),
+          )
         } else {
           setNotice('Molde salvo com sucesso. QR Code gerado.')
         }
       }
     } catch (err) {
+      setSaveProgress({ active: false, percent: 0, label: '' })
       setError(err.message)
     } finally {
       setSaving(false)
@@ -167,6 +307,15 @@ export default function PieceForm() {
   function closeStatusModal() {
     setSavedPieceForStatus(null)
     navigate('/admin')
+  }
+
+  if (saveProgress.active) {
+    return (
+      <>
+        <SaveProgressScreen progress={saveProgress} />
+        <QRCodeModal piece={createdQrPiece} onClose={closeCreatedQr} />
+      </>
+    )
   }
 
   return (
@@ -263,6 +412,85 @@ export default function PieceForm() {
 
         <Card className="grid gap-5 p-6">
           <div>
+            <h2 className="text-lg font-semibold text-slate-950">Dados técnicos</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Materiais, máquinas compatíveis, peso e dimensões do molde.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-4">
+            <Field label="Peso do molde (kg)">
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.pesoKg}
+                onChange={(event) => setForm({ ...form, pesoKg: event.target.value })}
+                placeholder="Ex: 240"
+              />
+            </Field>
+            <Field label="Altura">
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.dimensoes.altura}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    dimensoes: { ...form.dimensoes, altura: event.target.value },
+                  })
+                }
+              />
+            </Field>
+            <Field label="Largura">
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.dimensoes.largura}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    dimensoes: { ...form.dimensoes, largura: event.target.value },
+                  })
+                }
+              />
+            </Field>
+            <Field label="Comprimento">
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.dimensoes.comprimento}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    dimensoes: { ...form.dimensoes, comprimento: event.target.value },
+                  })
+                }
+              />
+            </Field>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <TaxonomySelector
+              type="materials"
+              title="Materiais"
+              selectedIds={form.materialIds}
+              onChange={(materialIds) => setForm({ ...form, materialIds })}
+            />
+            <TaxonomySelector
+              type="machines"
+              title="Máquinas"
+              selectedIds={form.machineIds}
+              onChange={(machineIds) => setForm({ ...form, machineIds })}
+            />
+          </div>
+        </Card>
+
+        <Card className="grid gap-5 p-6">
+          <div>
             <h2 className="text-lg font-semibold text-slate-950">Imagens</h2>
             <p className="mt-1 text-sm text-slate-500">
               Adicione fotos limpas da peça e do molde para facilitar a identificação.
@@ -289,6 +517,18 @@ export default function PieceForm() {
             />
           </div>
         </Card>
+
+        <ProcessSheetsSection
+          pieceId={isEditing ? id : undefined}
+          draftMode={!isEditing}
+          sheets={isEditing ? undefined : processSheets}
+          onSheetsChange={isEditing ? undefined : setProcessSheets}
+          description={
+            isEditing
+              ? 'Fichas técnicas vinculadas a este molde.'
+              : 'Prepare uma ou mais fichas antes de salvar. As imagens serão enviadas após a criação do molde.'
+          }
+        />
 
         {notice && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-medium text-amber-800">

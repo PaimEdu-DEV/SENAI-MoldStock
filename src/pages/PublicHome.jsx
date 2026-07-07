@@ -8,6 +8,8 @@ import PieceCard from '../components/PieceCard.jsx'
 import PieceTable from '../components/PieceTable.jsx'
 import StatsCard from '../components/StatsCard.jsx'
 import { Button } from '../components/ui/button.jsx'
+import { useIsMobile } from '../hooks/useIsMobile.js'
+import { useTaxonomy } from '../hooks/useTaxonomy.js'
 import { watchPieces } from '../services/pieceService.js'
 
 const initialFilters = {
@@ -40,6 +42,9 @@ export default function PublicHome() {
   const [filters, setFilters] = useState(initialFilters)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const { items: materials } = useTaxonomy('materials')
+  const { items: machines } = useTaxonomy('machines')
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     const unsubscribe = watchPieces(
@@ -142,13 +147,16 @@ export default function PublicHome() {
       )}
 
       {!loading && (
-        <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <motion.section
+          initial={isMobile ? false : { opacity: 0 }}
+          animate={isMobile ? undefined : { opacity: 1 }}
+        >
           <div className="hidden lg:block">
-            <PieceTable pieces={filteredPieces} />
+            <PieceTable pieces={filteredPieces} materials={materials} machines={machines} />
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:hidden">
+          <div className="grid gap-4 md:grid-cols-2 lg:hidden">
             {filteredPieces.map((piece) => (
-              <PieceCard key={piece.id} piece={piece} />
+              <PieceCard key={piece.id} piece={piece} materials={materials} machines={machines} />
             ))}
           </div>
         </motion.section>

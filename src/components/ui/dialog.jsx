@@ -9,10 +9,10 @@ export const DialogTrigger = DialogPrimitive.Trigger
 export function DialogContent({ className, children, ...props }) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-slate-950/45 backdrop-blur-sm data-[state=open]:animate-in" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-slate-950/45 backdrop-blur-sm data-[state=open]:animate-in dark:bg-[#020817]/70" />
       <DialogPrimitive.Content
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 grid max-h-[calc(100vh-32px)] w-[calc(100%-32px)] max-w-xl -translate-x-1/2 -translate-y-1/2 gap-5 overflow-auto rounded-3xl border border-slate-200 bg-white p-6 shadow-elevated outline-none',
+          'premium-card fixed left-1/2 top-1/2 z-50 grid max-h-[calc(100vh-32px)] w-[calc(100%-32px)] max-w-xl -translate-x-1/2 -translate-y-1/2 gap-5 overflow-auto rounded-3xl border border-slate-200 bg-white p-6 shadow-elevated outline-none dark:bg-[#101c2f]/95',
           className,
         )}
         {...props}

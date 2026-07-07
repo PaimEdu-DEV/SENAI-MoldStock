@@ -4,7 +4,6 @@
   onValue,
   push,
   ref as databaseRef,
-  remove,
   set,
   update,
 } from 'firebase/database'
@@ -28,13 +27,31 @@ function piecesRef(id = '') {
   return databaseRef(db, id ? `pecas/${id}` : 'pecas')
 }
 
+function normalizePieceData(data) {
+  return {
+    ...data,
+    codigo: String(data.codigo).trim(),
+    quantidade: Number(data.quantidade || 1),
+    materialIds: data.materialIds || [],
+    machineIds: data.machineIds || [],
+    pesoKg: data.pesoKg === '' || data.pesoKg == null ? '' : Number(data.pesoKg),
+    dimensoes: {
+      altura: data.dimensoes?.altura === '' || data.dimensoes?.altura == null ? '' : Number(data.dimensoes.altura),
+      largura: data.dimensoes?.largura === '' || data.dimensoes?.largura == null ? '' : Number(data.dimensoes.largura),
+      comprimento: data.dimensoes?.comprimento === '' || data.dimensoes?.comprimento == null ? '' : Number(data.dimensoes.comprimento),
+    },
+  }
+}
+
 export function watchPieces(callback, onError) {
   const listRef = piecesRef()
   onValue(
     listRef,
     (snapshot) => {
       const value = snapshot.val() || {}
-      const pieces = Object.entries(value).map(([id, data]) => ({ id, ...data }))
+      const pieces = Object.entries(value)
+        .map(([id, data]) => ({ id, ...data }))
+        .filter((piece) => piece.deleted !== true)
       callback(sortByCode(pieces))
     },
     onError,
@@ -46,7 +63,9 @@ export async function getPiece(id) {
   requireFirebase()
   const snapshot = await get(piecesRef(id))
   if (!snapshot.exists()) return null
-  return { id, ...snapshot.val() }
+  const piece = { id, ...snapshot.val() }
+  if (piece.deleted === true) return null
+  return piece
 }
 
 function readImage(file) {
@@ -89,9 +108,7 @@ export async function createPiece(data, files, userProfile) {
   ])
 
   await withTimeout(set(newPieceRef, {
-    ...data,
-    codigo: String(data.codigo).trim(),
-    quantidade: Number(data.quantidade || 1),
+    ...normalizePieceData(data),
     fotoPecaUrl,
     fotoMoldeUrl,
     criadoPor: userProfile?.nome || userProfile?.email || 'Professor',
@@ -103,7 +120,7 @@ export async function createPiece(data, files, userProfile) {
     entity: 'piece',
     entityId: newPieceRef.key,
     description: `Molde '${data.nome}' foi cadastrado.`,
-    after: { ...data, codigo: String(data.codigo).trim() },
+    after: normalizePieceData(data),
   })
 
   return { id: newPieceRef.key, imageError: '' }
@@ -112,9 +129,7 @@ export async function createPiece(data, files, userProfile) {
 export async function updatePiece(id, data, files, userProfile, before = null) {
   requireFirebase()
   const updates = {
-    ...data,
-    codigo: String(data.codigo).trim(),
-    quantidade: Number(data.quantidade || 1),
+    ...normalizePieceData(data),
     atualizadoEm: Date.now(),
   }
 
@@ -158,13 +173,23 @@ export async function updatePieceStatus(id, status, userProfile, before = null) 
 
 export async function deletePiece(id, userProfile, before = null) {
   requireFirebase()
-  await remove(piecesRef(id))
+  const deletion = {
+    deleted: true,
+    deletedAt: Date.now(),
+    deletedBy: userProfile?.uid || '',
+    deletedByName: userProfile?.nome || userProfile?.email || 'Professor',
+    atualizadoEm: Date.now(),
+  }
+  await update(piecesRef(id), deletion)
   await createAuditLog(userProfile, {
     action: 'DELETE',
     entity: 'piece',
     entityId: id,
-    description: 'Um molde foi excluído do sistema.',
+    description: before?.nome
+      ? `Molde '${before.nome}${before.codigo ? ` (${before.codigo})` : ''}' foi excluído do sistema.`
+      : 'Um molde foi excluído do sistema.',
     before,
+    after: deletion,
   })
 }
 

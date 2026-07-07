@@ -1,5 +1,5 @@
 ﻿import { motion } from 'framer-motion'
-import { Download, Search, ScrollText } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download, Search, ScrollText } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import PageHeader from '../components/PageHeader.jsx'
 import { Badge } from '../components/ui/badge.jsx'
@@ -36,6 +36,10 @@ const actions = [
   'DELETE',
   'STATUS_CHANGE',
   'BACKUP',
+  'BACKUP_SKIPPED',
+  'BACKUP_PROTECTION_ON',
+  'BACKUP_PROTECTION_OFF',
+  'BACKUP_PROTECTION_OVERRIDE',
   'RESTORE',
   'USER_CREATE',
   'USER_DELETE',
@@ -49,13 +53,14 @@ const actions = [
 const entities = ['Todos', 'piece', 'user', 'backup', 'system', 'occurrence']
 const auditableActions = new Set(actions.filter((action) => action !== 'Todos'))
 const auditableEntities = new Set(['piece', 'user', 'backup', 'system', 'occurrence'])
+const pageSize = 30
 
 export default function AuditLogs() {
   const { profile } = useAuth()
   const [logs, setLogs] = useState([])
   const [filters, setFilters] = useState(initialFilters)
   const [error, setError] = useState('')
-  const [limit, setLimit] = useState(80)
+  const [page, setPage] = useState(1)
 
   useEffect(() => watchLogs(setLogs, (err) => setError(err.message)), [])
 
@@ -79,7 +84,13 @@ export default function AuditLogs() {
   )
 
   const filteredLogs = useMemo(() => filterLogs(auditLogs, filters), [auditLogs, filters])
-  const visibleLogs = filteredLogs.slice(0, limit)
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / pageSize))
+  const safePage = Math.min(page, totalPages)
+  const visibleLogs = filteredLogs.slice((safePage - 1) * pageSize, safePage * pageSize)
+
+  useEffect(() => {
+    setPage(1)
+  }, [filters])
 
   function handleExport() {
     exportLogsPdf(filteredLogs, filters, profile)
@@ -205,13 +216,37 @@ export default function AuditLogs() {
                 </tbody>
               </table>
             </div>
-            {filteredLogs.length > visibleLogs.length && (
-              <div className="border-t border-slate-100 p-4 text-center">
-                <Button type="button" variant="secondary" onClick={() => setLimit(limit + 80)}>
-                  Carregar mais logs
+            <div className="flex flex-col gap-3 border-t border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-sm font-semibold text-slate-500">
+                Mostrando {visibleLogs.length ? (safePage - 1) * pageSize + 1 : 0}-
+                {Math.min(safePage * pageSize, filteredLogs.length)} de {filteredLogs.length} registros
+              </span>
+              <div className="flex items-center justify-center gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  disabled={safePage <= 1}
+                  onClick={() => setPage((current) => Math.max(1, current - 1))}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Anterior
+                </Button>
+                <span className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-600">
+                  {safePage} / {totalPages}
+                </span>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  disabled={safePage >= totalPages}
+                  onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                >
+                  Próxima
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
-            )}
+            </div>
           </>
         ) : (
           <div className="grid min-h-64 place-items-center p-8 text-center">
